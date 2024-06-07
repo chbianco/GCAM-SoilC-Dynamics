@@ -1,6 +1,11 @@
 #Load libraries
 library(dplyr)
 library(ggplot2)
+soilC <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GCAM_soilC.csv')
+PostKwon <- read.csv(file= 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/Experimental Data.csv', na.strings = c("", "NA"))
+timescales <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/soil_timescales.csv')
+glus <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GLU_codes.csv')
+regions <- read.csv('C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GCAM_regions.csv')
 
 #Join GLU codes with soilC data
 soilC %>%
@@ -11,13 +16,11 @@ soilC %>%
 
 
 #Simplify the data to just the stuff we'll need for the Post & Kwon comparisons 
-soilC_with_regions %>%
+soilC_regions %>%
   select(Land_Type, soil_c, GLU_code, Continent, soilTimeScale, GCAM_region_ID) -> simple_soilC_regions
 
 
 #Now, we will start comparing GCAM to Post & Kwon
-PostKwon <- read.csv(file= 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/Experimental Data.csv', na.strings = c("", "NA"))
-
 #Post & Kwon has some NA values but we'll just ignore those for now  
 #Note: Post & Kwon data was manually changed to GCAM region data with the help of the following:
 #https://stash.pnnl.gov/projects/JGCRI/repos/gcam-core/browse/input/gcamdata/inst/extdata/aglu/SAGE_LT.csv
@@ -28,11 +31,11 @@ PostKwon %>%
   select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate) %>%
   na.omit() %>%
   mutate(Land_Type = Initial_Land_Use) %>%
-  right_join( select(simple_soilC_with_regions, -Continent), by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
+  right_join( select(simple_soilC_regions, -Continent), by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
   rename(initial_soil_c = soil_c) %>%
   select(-Land_Type) %>%
   mutate(Land_Type = Final_Land_Use) %>%
-  right_join( select(simple_soilC_with_regions, -Continent), by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
+  right_join( select(simple_soilC_regions, -Continent), by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
   rename(final_soil_c = soil_c) %>%
   select(-Land_Type, -soilTimeScale.x) %>%
   rename(soilTimeScale = soilTimeScale.y) %>%
