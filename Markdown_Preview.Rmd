@@ -1,29 +1,99 @@
 ---
-title: "Initial_Code_Rmarkdown"
+title: "Initial Code Rmarkdown"
 output: html_document
-date: "2024-06-10"
+date: "`r format(Sys.time(), '%d %B %Y')`"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+## Soil Carbon Analysis
 
-## R Markdown
+We'll start by importing libraries and the data we'll be using for this analysis
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r, message=FALSE}
+library(dplyr)
+library(ggplot2)
+soilC <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GCAM_soilC.csv')
+PostKwon <- read.csv(file= 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/Experimental Data.csv', na.strings = c("", "NA"))
+timescales <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/soil_timescales.csv')
+glus <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GLU_codes.csv')
+regions <- read.csv('C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GCAM_regions.csv')
 ```
 
-## Including Plots
+Next, we add the GLU code, region codes, and timescales to the soilC data from GCAM. 
 
-You can also embed plots, for example:
+```{r}
+soilC %>%
+  mutate(GLU_code = GLU) %>%
+  right_join(glus, by='GLU_code') %>%
+  right_join(regions, by='GCAM_region_ID') %>%
+  right_join(timescales, by='GCAM_region_ID')-> soilC_regions
 
-```{r pressure, echo=FALSE}
-plot(pressure)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+A lot of the data here is unnecessary for our analysis, so we'll select only the data we need. 
+
+```{r}
+soilC_regions %>%
+  select(Land_Type, soil_c, GLU_code, Continent, soilTimeScale, GCAM_region_ID) -> simple_soilC_regions
+```
+
+Now, we will start comparing GCAM data to experimental values from Post & Kwon. There are some missing values from the experimental data, so those entries are simply ignored.
+Note: GCAM region data was manually added to the Post & Kwon data with the help of the following:
+https://stash.pnnl.gov/projects/JGCRI/repos/gcam-core/browse/input/gcamdata/inst/extdata/aglu/SAGE_LT.csv
+In order to perform this analysis, we need to match the experimental to its GCAM analogue. This is also where we compute the k value for both experimental data and GCAM data. 
+
+```{r}
+PostKwon %>%
+  select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate) %>%
+  na.omit() %>%
+  mutate(Land_Type = Initial_Land_Use) %>%
+  right_join( select(simple_soilC_regions, -Continent), by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
+  rename(initial_soil_c = soil_c) %>%
+  select(-Land_Type) %>%
+  mutate(Land_Type = Final_Land_Use) %>%
+  right_join( select(simple_soilC_regions, -Continent), by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
+  rename(final_soil_c = soil_c) %>%
+  select(-Land_Type, -soilTimeScale.x) %>%
+  rename(soilTimeScale = soilTimeScale.y) %>%
+  na.omit() %>%
+  mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
+         Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
+         GCAM_k = -log(final_soil_c/initial_soil_c)/Time, 
+         ) %>%
+  #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
+  mutate(Exp_k = ifelse(sign(Exp_k) == sign(Exp_Rate), Exp_k*(-1), Exp_k)) -> Rate_Comparison
+
+```
+
+Below, we plot the raw rate values as well as k for both sets of data. 
+
+```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates and the computed k values", message=FALSE}
+#Plot overlapping rate histograms for the different rate sources
+ggplot() +
+  geom_histogram(aes(x = Rate_Comparison$Exp_Rate, fill ='Experimental Rate' ), alpha = 0.5) +
+  geom_histogram(aes(x = Rate_Comparison$GCAM_Rate, fill = 'GCAM Rate'), alpha = 0.5) +
+  xlab('Rate') + ylab('Count') +
+  scale_fill_manual(values = c('Experimental Rate' = '#45912c', 'GCAM Rate'='#e3962b'))
+
+
+#Plot overlapping k histograms for the different k sources
+ggplot() +
+  geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
+  geom_histogram(aes(x = Rate_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
+  xlab('k') + ylab('Count') +
+  scale_fill_manual(values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b'))
+```
+
+We also perform a t-test on both sets of data to see if there is a statistically significant difference in their means. 
+
+```{r}
+t.test(Rate_Comparison$Exp_Rate, Rate_Comparison$GCAM_Rate, alternative = 'two.sided') ->Rate_T_test
+print(Rate_T_test)
+#According to this, there is not a meaningful difference in the means
+
+t.test(Rate_Comparison$Exp_k, Rate_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
+print(k_T_test)
+#According to this, there is a meaningful difference in the means
+```
