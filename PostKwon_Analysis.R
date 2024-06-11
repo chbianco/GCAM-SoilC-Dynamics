@@ -56,7 +56,8 @@ ggplot(data = Rate_Comparison, aes(x = Exp_Rate, y = GCAM_Rate)) +
   geom_abline() + 
   xlab('Experimental Rates') + ylab('GCAM Derived Rates') +
   theme_light() + 
-  xlim(-.15, .35) + ylim(-.15, .35) 
+  xlim(-.15, .35) + ylim(-.15, .35)  +
+  labs(color = 'Initial Land Use', shape = 'Final Land Use')
   
 
 
