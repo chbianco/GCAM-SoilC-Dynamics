@@ -50,10 +50,14 @@ PostKwon %>%
 
 #Plot the two rates against each other with a 1:1 line as well
 ggplot(data = Rate_Comparison, aes(x = Exp_Rate, y = GCAM_Rate)) + 
-  geom_point(aes(shape = `Final_Land_Use`, color = `Initial_Land_Use`, size = 2)) + 
-  scale_shape(solid = FALSE) +
+  geom_point(aes(shape = Final_Land_Use, color = Initial_Land_Use), size = 2) + 
+  scale_shape_manual(values = c(4, 8, 16, 17)) +
+  scale_shape(solid = TRUE) +
   geom_abline() + 
-  xlab('Experimental Rates') + ylab('GCAM Derived Rates')
+  xlab('Experimental Rates') + ylab('GCAM Derived Rates') +
+  theme_light() + 
+  xlim(-.15, .35) + ylim(-.15, .35) 
+  
 
 
 #Plot overlapping rate histograms for the different rate sources
@@ -61,7 +65,9 @@ ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_Rate, fill ='Experimental Rate' ), alpha = 0.5) +
   geom_histogram(aes(x = Rate_Comparison$GCAM_Rate, fill = 'GCAM Rate'), alpha = 0.5) +
   xlab('Rate') + ylab('Count') +
-  scale_fill_manual(values = c('Experimental Rate' = '#45912c', 'GCAM Rate'='#e3962b'))
+  scale_fill_manual(name = "Data Source", values = c('Experimental Rate' = '#45912c', 'GCAM Rate'='#e3962b')) + 
+  theme_light() 
+
 
 
 #Plot overlapping k histograms for the different k sources
@@ -69,7 +75,8 @@ ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
   geom_histogram(aes(x = Rate_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
   xlab('k') + ylab('Count') +
-  scale_fill_manual(values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b'))
+  scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
+  theme_light()
 
 
 #T-tests, just for funsies
