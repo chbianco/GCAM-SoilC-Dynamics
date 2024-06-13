@@ -1,6 +1,6 @@
 ---
 title: "Comparing GCAM soil organic carbon predictions to empirical land use results"
-output: html_document
+output: bookdown::html_document2
 date: "`r format(Sys.time(), '%d %B %Y')`"
 ---
 
@@ -12,7 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 # Introduction
 
 There has been ample research on empirical soil organic carbon (SOC) levels worldwide, and several papers have compiled the results of these studies. Specifically, there are many measurements of the rate of SOC change during land use transition. However, there has not yet been an effort to directly compare these measured SOC rates to those projected by Integrated Assessment Models (IAMs) (?). The factors that influence these rates are highly varied and complex, leading to high levels of uncertainty. This highlights a need to check how SOC rates are modeled against experimental results.  
+
+\newline
 One of these IAMs is the the Global Change Assessment Model (GCAM). GCAM is an open source, multi-sector dynamics model developed primarily by Pacific Northwest National Laboratory's Joint Global Change Research Institute. GCAM represents the behaviors of and interactions between earths energy and water systems, the climate, and the global economy to answer "what if" scenarios about future global change. A major component of GCAM's analysis is land use worldwide. GCAM splits the world into 384 land use regions determined by the intersection of basins and sociopolitical boundaries. This land is then split into 8 different land types, each with their own unique parameters. [I don't really understand how this part works]  
+
+\newline
 One of the parameters measured by GCAM is the soil organic carbon (SOC) content of soil. [maybe add background about SOC]This is primarily dependent on land use and region. When land use transition occurs, the change in SOC content is simply modeled as a [shape] change between the two SOC values for the initial and final land use over a prescribed number of years, or the soil timescale. Each of GCAM's 32 geopolitical regions have a set soil timescale, ranging from 25 years (for the United States) to 200 years (Russia). The origin of these values is unclear (?) and this project aims to help determine their accuracy. 
 
 
@@ -102,7 +106,7 @@ Note that, because of how the k value is computed for the experimental data, the
 # Results
 Both the rates and k values differed based on where the source of the data. 
 
-```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates and the computed k values", message=FALSE}
+```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates during land use transition", message=FALSE}
 #Plot overlapping rate histograms for the different rate sources
 ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_Rate, fill ='Experimental Rate' ), alpha = 0.5) +
@@ -111,8 +115,10 @@ ggplot() +
   scale_fill_manual(name = "Data Source", values = c('Experimental Rate' = '#45912c', 'GCAM Rate'='#e3962b')) + 
   theme_light() +
   labs(title = 'SOC rate comparison during land use transition')
+```
 
 
+```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change", message=FALSE}
 #Plot overlapping k histograms for the different k sources
 ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +

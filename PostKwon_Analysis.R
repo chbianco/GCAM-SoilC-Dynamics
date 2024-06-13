@@ -57,7 +57,9 @@ ggplot(data = Rate_Comparison, aes(x = Exp_Rate, y = GCAM_Rate)) +
   xlab('Experimental Rates (kg C/m^2)') + ylab('GCAM Derived Rates (kg C/m^2)') +
   theme_light() + 
   xlim(-.15, .35) + ylim(-.15, .35)  +
-  labs(title = 'SOC rate comparison during land use transition', color =  'Initial Land Use', shape = 'Final Land Use')
+  labs(title = 'SOC rate comparison during land use transition', 
+       color =  'Initial Land Use', shape = 'Final Land Use',
+       caption = '')
 
 #Plot the two rates against each other with a 1:1 line as well
 ggplot(data = Rate_Comparison, aes(x = Exp_k, y = GCAM_k)) + 
