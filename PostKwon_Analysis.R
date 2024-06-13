@@ -50,7 +50,7 @@ PostKwon %>%
 
 #Plot the two rates against each other with a 1:1 line as well
 ggplot(data = Rate_Comparison, aes(x = Exp_Rate, y = GCAM_Rate)) + 
-  geom_point(aes(shape = Final_Land_Use, color = Initial_Land_Use), size = 2) + 
+  geom_point(aes(shape = Final_Land_Use, color = Initial_Land_Use), size = 3) + 
   scale_shape_manual(values = c(4, 8, 16, 17)) +
   scale_shape(solid = TRUE) +
   geom_abline() + 
@@ -61,14 +61,14 @@ ggplot(data = Rate_Comparison, aes(x = Exp_Rate, y = GCAM_Rate)) +
 
 #Plot the two rates against each other with a 1:1 line as well
 ggplot(data = Rate_Comparison, aes(x = Exp_k, y = GCAM_k)) + 
-  geom_point(aes(shape = Final_Land_Use, color = Initial_Land_Use), size = 2) + 
+  geom_point(aes(shape = Final_Land_Use, color = Initial_Land_Use), size = 3) + 
   scale_shape_manual(values = c(4, 8, 16, 17)) +
   scale_shape(solid = TRUE) +
   geom_abline() + 
   xlab('Experimental k (1/y)') + ylab('GCAM Derived k (1/y)') +
   theme_light() + 
-  xlim(-.15, .35) + ylim(-.15, .35)  +
-  labs(title = 'SOC rate comparison during land use transition', color =  'Initial Land Use', shape = 'Final Land Use')
+  xlim(-.1, .1) + ylim(-.1, .1)  +
+  labs(title = 'SOC k comparison during land use transition', color =  'Initial Land Use', shape = 'Final Land Use')
   
 
 
