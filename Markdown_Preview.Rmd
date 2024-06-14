@@ -8,6 +8,8 @@ date: "`r format(Sys.time(), '%d %B %Y')`"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 # Abstract
+Much of the world's carbon is sequestered in soil. Changes in land use greatly impacts whether this carbon remains stored or if it is emitted back into the atmosphere as carbon dioxide. These changes are modeled by many Integrated Assessment Models (IAMs), one of which being the Global Change Analysis Model (GCAM). GCAM uses a highly simplified process to represent these changes, which has not yet been compared to experimental process. This study compared [###] of soil organic carbon (SOC) measurements to GCAM's soil carbon data to determine the accuracy of GCAM's modeling. We found that both the experimental rates of SOC change and the turnover rate constant differed significantly from the same values outputted from GCAM. These results highlight the importance of updating how GCAM models soil carbon content change during land use transition.
+
 
 # Introduction
 
