@@ -1,48 +1,84 @@
 ---
-title: "Initial Code Rmarkdown"
-output: html_document
+title: "Comparing GCAM soil organic carbon predictions to empirical land use results"
+output: bookdown::html_document2
 date: "`r format(Sys.time(), '%d %B %Y')`"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-## Soil Carbon Analysis
+# Abstract
+Much of the world's carbon is sequestered in soil. Changes in land use greatly impacts whether this carbon remains stored or if it is emitted back into the atmosphere as carbon dioxide. These changes are modeled by many Integrated Assessment Models (IAMs), one of which being the Global Change Analysis Model (GCAM). GCAM uses a highly simplified process to represent these changes, which has not yet been compared to experimental process. This study compared [###] of soil organic carbon (SOC) measurements to GCAM's soil carbon data to determine the accuracy of GCAM's modeling. We found that both the experimental rates of SOC change and the turnover rate constant differed significantly from the same values outputted from GCAM. These results highlight the importance of updating how GCAM models soil carbon content change during land use transition.
 
-We'll start by importing libraries and the data we'll be using for this analysis
+
+# Introduction
+
+There has been ample research on empirical soil organic carbon (SOC) levels worldwide, and several papers have compiled the results of these studies. Specifically, there are many measurements of the rate of SOC change during land use transition. However, there has not yet been an effort to directly compare these measured SOC rates to those projected by Integrated Assessment Models (IAMs) (?). The factors that influence these rates are highly varied and complex, leading to high levels of uncertainty. This highlights a need to check how SOC rates are modeled against experimental results.  
+
+\newline
+One of these IAMs is the the Global Change Assessment Model (GCAM). GCAM is an open source, multi-sector dynamics model developed primarily by Pacific Northwest National Laboratory's Joint Global Change Research Institute. GCAM represents the behaviors of and interactions between earths energy and water systems, the climate, and the global economy to answer "what if" scenarios about future global change. A major component of GCAM's analysis is land use worldwide. GCAM splits the world into 384 land use regions determined by the intersection of basins and sociopolitical boundaries. This land is then split into 8 different land types, each with their own unique parameters. [I don't really understand how this part works]  
+
+\newline
+One of the parameters measured by GCAM is the soil organic carbon (SOC) content of soil. [maybe add background about SOC]This is primarily dependent on land use and region. When land use transition occurs, the change in SOC content is simply modeled as a [shape] change between the two SOC values for the initial and final land use over a prescribed number of years, or the soil timescale. Each of GCAM's 32 geopolitical regions have a set soil timescale, ranging from 25 years (for the United States) to 200 years (Russia). The origin of these values is unclear (?) and this project aims to help determine their accuracy. 
+
+
+# Methods
+
+To begin the analysis, SOC data was taken from a basic run of GCAM [more detail here]. The raw csv files can be found in the supplementary materials, below. Rstudio was used to perform the analysis, as well as the packages dlyr and ggpot2. Note that the SOC data, GCAM's soil timescale list, as well as both the geopolitical regions list and the land use regions list are separate files, and must be merged before any additional steps can be performed. Below is the code used to load the data and libraries, as well as to merge the four files listed above. The final product is a data set where each SOC data point has an associated timescale value, land use region, and geopolitical region.
 
 ```{r, message=FALSE}
 library(dplyr)
 library(ggplot2)
+
+#GCAM's SOC data
 soilC <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GCAM_soilC.csv')
-PostKwon <- read.csv(file= 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/Experimental Data.csv', na.strings = c("", "NA"))
+
+
+#GCAM's soil timescale list
 timescales <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/soil_timescales.csv')
+
+#GCAM's land use region list [what does GLU stand for?????]
 glus <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GLU_codes.csv')
+
+#GCAM's geopolitical region list
 regions <- read.csv('C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GCAM_regions.csv')
-```
 
-Next, we add the GLU code, region codes, and timescales to the soilC data from GCAM. 
-
-```{r}
+#Merging the four above data sets
 soilC %>%
   mutate(GLU_code = GLU) %>%
   right_join(glus, by='GLU_code') %>%
   right_join(regions, by='GCAM_region_ID') %>%
   right_join(timescales, by='GCAM_region_ID')-> soilC_regions
-
 ```
 
-A lot of the data here is unnecessary for our analysis, so we'll select only the data we need. 
+Much of the data contained within the SOC data set is irrelevant to this analysis, so it was removed.
 
 ```{r}
 soilC_regions %>%
   select(Land_Type, soil_c, GLU_code, Continent, soilTimeScale, GCAM_region_ID) -> simple_soilC_regions
 ```
 
-Now, we will start comparing GCAM data to experimental values from Post & Kwon. There are some missing values from the experimental data, so those entries are simply ignored.
-Note: GCAM region data was manually added to the Post & Kwon data with the help of the following:
-https://stash.pnnl.gov/projects/JGCRI/repos/gcam-core/browse/input/gcamdata/inst/extdata/aglu/SAGE_LT.csv
-In order to perform this analysis, we need to match the experimental to its GCAM analogue. This is also where we compute the k value for both experimental data and GCAM data. 
+The experimental data compared to GCAM's outputs was taken from Post & Kwon (2008), a review of 88 different SOC measurements from the past 60 years. This data was manually digitized into a CSV file for analysis. This data did not explicitly list site locations for each measurement, so this information was determined from the paper referenced by Post & Kwon. Once the location was determined, it was compared to GCAM's 384 land use regions using the rmap tool and GCAM's basin code mapping file. Then, the GLU code was manually added to the digitized data from Post & Kwon.  
+
+Once fully digitized, the Post & Kwon data was loaded into R as well. Note that there were several entries with missing timeframes or where the location of the sample could not be determined. These were assigned a value of 'NA'. 
+```{r}
+PostKwon <- read.csv(file= 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/Experimental Data.csv', na.strings = c("", "NA"))
+```
+
+Once the experimental data was loaded in, each observation was mapped to is corresponding GCAM data point. This was done by simply adding the previously created GCAM data set to the experimental one by land use region, geopolitical region, and land use. This process was done twice--once for the initial land use and once for the final land use. This meant that, ultimately, each Post & Kwon data point had two associated GCAM SOC values--one for the initial land use, and one for the final land use.  
+
+This then allowed us to compute the GCAM SOC rate during land use change. This was done by simply subtracting the initial SOC value from the final value and dividing that by the total time the land use transition took (contained within the Post & Kwon data). Finally, the k value (explained in depth in Wei et al.) was computed for both the experimental and GCAM data. The experimental and GCAM k values were computed using equations 1 and 2, respectively, below. [where should I put the derivations for this?]
+\begin{equation}
+\tag{1}
+k_{exp} = -\frac{ln \left(\frac{C_f}{C_0}\right)}{t}
+\end{equation}
+
+\begin{equation}
+\tag{2}
+k_{exp} = -\frac{ln (Rate \times t + 1)}{t}
+\end{equation}
+
+The code for merging the GCAM and experimental, as well as for computing the rate and k value is below. 
 
 ```{r}
 PostKwon %>%
@@ -67,33 +103,43 @@ PostKwon %>%
 
 ```
 
-Below, we plot the raw rate values as well as k for both sets of data. 
+Note that, because of how the k value is computed for the experimental data, the sign was often mismatched. The sign of k corresponds to the opposite of the sign of the rate, which had to be corrected manually. 
 
-```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates and the computed k values", message=FALSE}
+# Results
+Both the rates and k values differed based on where the source of the data. 
+
+```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates during land use transition", message=FALSE}
 #Plot overlapping rate histograms for the different rate sources
 ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_Rate, fill ='Experimental Rate' ), alpha = 0.5) +
   geom_histogram(aes(x = Rate_Comparison$GCAM_Rate, fill = 'GCAM Rate'), alpha = 0.5) +
-  xlab('Rate') + ylab('Count') +
-  scale_fill_manual(values = c('Experimental Rate' = '#45912c', 'GCAM Rate'='#e3962b'))
+  xlab('Rate (kg C/m^2-y)') + ylab('Count') +
+  scale_fill_manual(name = "Data Source", values = c('Experimental Rate' = '#45912c', 'GCAM Rate'='#e3962b')) + 
+  theme_light() +
+  labs(title = 'SOC rate comparison during land use transition')
+```
 
 
+```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change", message=FALSE}
 #Plot overlapping k histograms for the different k sources
 ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
   geom_histogram(aes(x = Rate_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
-  xlab('k') + ylab('Count') +
-  scale_fill_manual(values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b'))
+  xlab('k (y^-1)') + ylab('Count') +
+  scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
+  theme_light() +
+  labs(title = 'SOC k value comparison during land use transition')
 ```
 
-We also perform a t-test on both sets of data to see if there is a statistically significant difference in their means. 
-
+A t-test was also performed on both the rates and k values. As can be seen below, the difference between means of the rate data sets was not statistically significant, but it was for the k values.  
 ```{r}
 t.test(Rate_Comparison$Exp_Rate, Rate_Comparison$GCAM_Rate, alternative = 'two.sided') ->Rate_T_test
 print(Rate_T_test)
-#According to this, there is not a meaningful difference in the means
 
 t.test(Rate_Comparison$Exp_k, Rate_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
 print(k_T_test)
-#According to this, there is a meaningful difference in the means
 ```
+
+# Discussion
+
+# Conclusion
