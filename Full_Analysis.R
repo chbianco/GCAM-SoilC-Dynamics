@@ -69,3 +69,30 @@ Wei %>%
   ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
   mutate(Exp_k = ifelse(sign(Exp_k) == sign(OC_decrease), Exp_k, Exp_k*(-1))) -> Wei_Comparison
+
+#Now, we bind the two rows together. Because the Wei et al data doesn't have any raw rates, we won't include that data from Post & Kwon either
+Full_Comparison <- bind_rows(
+  select(PostKwon_Comparison, -Exp_Rate, -Rate_Difference),
+  select(Wei_Comparison, -OC_decrease)
+  )
+
+#Plot the two k vals against each other with a 1:1 line as well
+ggplot(data = Full_Comparison, aes(x = Exp_k, y = GCAM_k)) + 
+  geom_point(aes(shape = Final_Land_Use, color = Initial_Land_Use), size = 2) + 
+  scale_shape_manual(values = c(4, 8, 16, 17)) +
+  scale_shape(solid = TRUE) +
+  geom_abline() + 
+  xlab('Experimental k (1/y)') + ylab('GCAM Derived k (1/y)') +
+  theme_light() + 
+  xlim(-.1, .4) + ylim(-.1, .4)  +
+  labs(title = 'SOC k comparison during land use transition', color =  'Initial Land Use', shape = 'Final Land Use')
+
+
+#Plot overlapping k histograms for the different k sources
+ggplot() +
+  geom_histogram(aes(x = Full_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
+  geom_histogram(aes(x = Full_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
+  xlab('k (y^-1)') + ylab('Count') +
+  scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
+  theme_light() +
+  labs(title = 'SOC k value comparison during land use transition')
