@@ -1,11 +1,14 @@
 #Load libraries
 library(dplyr)
 library(ggplot2)
-soilC <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GCAM_soilC.csv')
-PostKwon <- read.csv(file= 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/Experimental Data.csv', na.strings = c("", "NA"))
-timescales <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/soil_timescales.csv')
-glus <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GLU_codes.csv')
-regions <- read.csv('C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GCAM_regions.csv')
+library(dplyr)
+library(ggplot2)
+soilC <- read.csv(file = 'GCAM_soilC.csv')
+PostKwon <- read.csv(file= 'Experimental Data.csv', na.strings = c("", "NA"))
+timescales <- read.csv(file = 'soil_timescales.csv')
+glus <- read.csv(file = 'GLU_codes.csv')
+regions <- read.csv('GCAM_regions.csv')
+
 
 #Join GLU codes with soilC data
 soilC %>%
@@ -61,7 +64,7 @@ ggplot(data = Rate_Comparison, aes(x = Exp_Rate, y = GCAM_Rate)) +
        color =  'Initial Land Use', shape = 'Final Land Use',
        caption = '')
 
-#Plot the two rates against each other with a 1:1 line as well
+#Plot the two k vals against each other with a 1:1 line as well
 ggplot(data = Rate_Comparison, aes(x = Exp_k, y = GCAM_k)) + 
   geom_point(aes(shape = Final_Land_Use, color = Initial_Land_Use), size = 3) + 
   scale_shape_manual(values = c(4, 8, 16, 17)) +
