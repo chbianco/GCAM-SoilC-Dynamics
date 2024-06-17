@@ -96,3 +96,12 @@ ggplot() +
   scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
   theme_light() +
   labs(title = 'SOC k value comparison during land use transition')
+
+#T_Test
+t.test(Full_Comparison$Exp_k, Full_Comparison$GCAM_k, alternative = 'two.sided') ->Full_T_test
+
+
+
+
+
+

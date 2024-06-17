@@ -31,17 +31,16 @@ library(dplyr)
 library(ggplot2)
 
 #GCAM's SOC data
-soilC <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GCAM_soilC.csv')
-
+soilC <- read.csv(file = 'GCAM_soilC.csv')
 
 #GCAM's soil timescale list
-timescales <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/soil_timescales.csv')
+timescales <- read.csv(file = 'soil_timescales.csv')
 
 #GCAM's land use region list [what does GLU stand for?????]
-glus <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GLU_codes.csv')
+glus <- read.csv(file = 'GLU_codes.csv')
 
 #GCAM's geopolitical region list
-regions <- read.csv('C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GCAM_regions.csv')
+regions <- read.csv('GCAM_regions.csv')
 
 #Merging the four above data sets
 soilC %>%
@@ -62,7 +61,7 @@ The experimental data compared to GCAM's outputs was taken from Post & Kwon (200
 
 Once fully digitized, the Post & Kwon data was loaded into R as well. Note that there were several entries with missing timeframes or where the location of the sample could not be determined. These were assigned a value of 'NA'. 
 ```{r}
-PostKwon <- read.csv(file= 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/Experimental Data.csv', na.strings = c("", "NA"))
+PostKwon <- read.csv(file= 'Experimental Data.csv', na.strings = c("", "NA"))
 ```
 
 Once the experimental data was loaded in, each observation was mapped to is corresponding GCAM data point. This was done by simply adding the previously created GCAM data set to the experimental one by land use region, geopolitical region, and land use. This process was done twice--once for the initial land use and once for the final land use. This meant that, ultimately, each Post & Kwon data point had two associated GCAM SOC values--one for the initial land use, and one for the final land use.  
@@ -103,12 +102,83 @@ PostKwon %>%
 
 ```
 
-Note that, because of how the k value is computed for the experimental data, the sign was often mismatched. The sign of k corresponds to the opposite of the sign of the rate, which had to be corrected manually. 
+Note that, because of how the k value is computed for the experimental data, the sign was often mismatched. The sign of k corresponds to the opposite of the sign of the rate, which had to be corrected manually.  
+
+\newline
+Experimental data from Wei et al. was also compared to GCAM's outputs using the same procedure. However, this data did not contain any raw rate information. Instead, the study only reported percent decrease in SOC concentration. This means we were only able to compare k values between the Wei et. al. data and GCAM. Additionally, k had to b computed with a modified equation, 3, below. 
+
+\begin{equation}
+\tag{3}
+k_{exp} = -\frac{ln \left(\frac{1}{\frac{|OC Decrease|}{100} + 1}\right)}{t}
+\end{equation}
+
+Again, because of how the k value is computed for the experimental data, the sign was often mismatched. The sign of k corresponds to the opposite of the sign of the rate, which had to be corrected manually.  
+
+```{r, echo = FALSE}
+Wei <- read.csv(file= 'Wei et al Data.csv', na.strings = c("", "NA"))
+#Creating the Post & Kwon comparison data 
+PostKwon %>%
+  select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate) %>%
+  na.omit() %>%
+  mutate(Land_Type = Initial_Land_Use) %>%
+  right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
+  rename(initial_soil_c = soil_c) %>%
+  select(-Land_Type) %>%
+  mutate(Land_Type = Final_Land_Use) %>%
+  right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
+  rename(final_soil_c = soil_c) %>%
+  select(-Land_Type, -soilTimeScale.x) %>%
+  rename(soilTimeScale = soilTimeScale.y) %>%
+  na.omit() %>%
+  mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
+         Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
+         GCAM_k = -log(final_soil_c/initial_soil_c)/Time, 
+         source = 'Post & Kwon'
+  ) %>%
+  #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
+  mutate(Exp_k = ifelse(sign(Exp_k) == sign(Exp_Rate), Exp_k*(-1), Exp_k)) -> PostKwon_Comparison
+
+
+#Creating the Wei et al comparison data
+Wei %>%
+  select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, OC_decrease, Time) %>%
+  na.omit() %>%
+  mutate(Land_Type = Initial_Land_Use) %>%
+  right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
+  rename(initial_soil_c = soil_c) %>%
+  select(-Land_Type) %>%
+  mutate(Land_Type = Final_Land_Use) %>%
+  right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
+  rename(final_soil_c = soil_c) %>%
+  select(-Land_Type, -soilTimeScale.x) %>%
+  rename(soilTimeScale = soilTimeScale.y) %>%
+  na.omit() %>%
+  mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale,
+         GCAM_k = -log(final_soil_c/initial_soil_c)/Time,
+         Exp_k = -log(1/((abs(OC_decrease)/100) +1))/Time,
+         source = 'Wei et al'
+  ) %>%
+  #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
+  mutate(Exp_k = ifelse(sign(Exp_k) == sign(OC_decrease), Exp_k, Exp_k*(-1))) -> Wei_Comparison
+```
+
+
+\Newline
+Once the Wei et al. data was matched to its corresponding GCAM outputs, the two data sets (Post& Kwon and Wei et al.) were merged. Importantly, because the rate data does not exist for Wei et al., the rate data was not included in the agregated data set. 
+
+```{r}
+Full_Comparison <- bind_rows(
+  select(PostKwon_Comparison, -Exp_Rate, -Rate_Difference),
+  select(Wei_Comparison, -OC_decrease)
+  )
+```
+
+
 
 # Results
-Both the rates and k values differed based on where the source of the data. 
+Both the rates and k values differed based on the source of the data. 
 
-```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates during land use transition", message=FALSE}
+```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates during land use transition. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
 #Plot overlapping rate histograms for the different rate sources
 ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_Rate, fill ='Experimental Rate' ), alpha = 0.5) +
@@ -120,7 +190,7 @@ ggplot() +
 ```
 
 
-```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change", message=FALSE}
+```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
 #Plot overlapping k histograms for the different k sources
 ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
@@ -139,6 +209,27 @@ print(Rate_T_test)
 t.test(Rate_Comparison$Exp_k, Rate_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
 print(k_T_test)
 ```
+
+However, results changed slightly when the data from Wei et al. was also included. Post & Kwon is shown separately because it is a more complete data set, including more land use types. It also has rate data. Below are plots comparing k values to GCAM outputs with both Wei et al. and Post & Kwon data. 
+
+```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Post & Kwonfrom both Post & Kwon and Wei et al.", message=FALSE}
+#Plot overlapping k histograms for the different k sources
+ggplot() +
+  geom_histogram(aes(x = Full_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
+  geom_histogram(aes(x = Full_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
+  xlab('k (y^-1)') + ylab('Count') +
+  scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
+  theme_light() +
+  labs(title = 'SOC k value comparison during land use transition')
+```
+
+A t-test was also performed for the aggregated data set. 
+
+```{r}
+t.test(Full_Comparison$Exp_k, Full_Comparison$GCAM_k, alternative = 'two.sided')
+```
+
+As can be seen, this indicates that there is not a statistically significant difference between the sets of k values for the aggregated data set.  
 
 # Discussion
 
