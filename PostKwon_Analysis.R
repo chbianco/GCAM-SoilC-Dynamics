@@ -1,11 +1,14 @@
 #Load libraries
 library(dplyr)
 library(ggplot2)
-soilC <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GCAM_soilC.csv')
-PostKwon <- read.csv(file= 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/Experimental Data.csv', na.strings = c("", "NA"))
-timescales <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/soil_timescales.csv')
-glus <- read.csv(file = 'C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GLU_codes.csv')
-regions <- read.csv('C:/Users/bian240/OneDrive - PNNL/Desktop/Initial Project Code/GCAM-SoilC-Dynamics/GCAM_regions.csv')
+library(dplyr)
+library(ggplot2)
+soilC <- read.csv(file = 'GCAM_soilC.csv')
+PostKwon <- read.csv(file= 'Experimental Data.csv', na.strings = c("", "NA"))
+timescales <- read.csv(file = 'soil_timescales.csv')
+glus <- read.csv(file = 'GLU_codes.csv')
+regions <- read.csv('GCAM_regions.csv')
+
 
 #Join GLU codes with soilC data
 soilC %>%
