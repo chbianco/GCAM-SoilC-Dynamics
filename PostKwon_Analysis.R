@@ -62,7 +62,7 @@ ggplot(data = Rate_Comparison, aes(x = Exp_Rate, y = GCAM_Rate)) +
   xlim(-.15, .35) + ylim(-.15, .35)  +
   labs(title = 'SOC rate comparison during land use transition', color =  'Initial Land Use', shape = 'Final Land Use')
 
-#Plot the two rates against each other with a 1:1 line as well
+#Plot the two k vals against each other with a 1:1 line as well
 ggplot(data = Rate_Comparison, aes(x = Exp_k, y = GCAM_k)) + 
   geom_point(aes(shape = Final_Land_Use, color = Initial_Land_Use), size = 2) + 
   scale_shape_manual(values = c(4, 8, 16, 17)) +
