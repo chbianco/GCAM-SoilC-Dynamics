@@ -8,7 +8,7 @@ date: "`r format(Sys.time(), '%d %B %Y')`"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 # Abstract
-Much of the world's carbon is sequestered in soil. Changes in land use greatly impacts whether this carbon remains stored or if it is emitted back into the atmosphere as carbon dioxide. These changes are modeled by many Integrated Assessment Models (IAMs), one of which being the Global Change Analysis Model (GCAM). GCAM uses a highly simplified process to represent these changes, which has not yet been compared to experimental process. This study compared [###] of soil organic carbon (SOC) measurements to GCAM's soil carbon data to determine the accuracy of GCAM's modeling. We found that both the experimental rates of SOC change and the turnover rate constant differed significantly from the same values outputted from GCAM. These results highlight the importance of updating how GCAM models soil carbon content change during land use transition.
+Much of the world's carbon is sequestered in soil. Changes in land use greatly impacts whether this carbon remains stored or if it is emitted back into the atmosphere as carbon dioxide. These changes are modeled by many Integrated Assessment Models (IAMs), one of which being the Global Change Analysis Model (GCAM). GCAM uses a highly simplified process to represent soil carbon changes, which has not yet been compared to experimental process. This study compared [###] of soil organic carbon (SOC) measurements to GCAM's soil carbon data to determine the accuracy of GCAM's modeling. We found that both the experimental rates of SOC change and the turnover rate constant differed significantly from the same values outputted from GCAM. These results highlight the importance of updating how GCAM models soil carbon content change during land use transition.
 
 
 # Introduction
@@ -16,10 +16,10 @@ Much of the world's carbon is sequestered in soil. Changes in land use greatly i
 There has been ample research on empirical soil organic carbon (SOC) levels worldwide, and several papers have compiled the results of these studies. Specifically, there are many measurements of the rate of SOC change during land use transition. However, there has not yet been an effort to directly compare these measured SOC rates to those projected by Integrated Assessment Models (IAMs) (?). The factors that influence these rates are highly varied and complex, leading to high levels of uncertainty. This highlights a need to check how SOC rates are modeled against experimental results.  
 
 \newline
-One of these IAMs is the the Global Change Assessment Model (GCAM). GCAM is an open source, multi-sector dynamics model developed primarily by Pacific Northwest National Laboratory's Joint Global Change Research Institute. GCAM represents the behaviors of and interactions between earths energy and water systems, the climate, and the global economy to answer "what if" scenarios about future global change. A major component of GCAM's analysis is land use worldwide. GCAM splits the world into 384 land use regions determined by the intersection of basins and sociopolitical boundaries. This land is then split into 8 different land types, each with their own unique parameters. [I don't really understand how this part works]  
+One of these IAMs is the the Global Change Assessment Model (GCAM). GCAM is an open source, multi-sector dynamics model developed primarily by Pacific Northwest National Laboratory's Joint Global Change Research Institute. GCAM represents the behaviors of and interactions between earths energy and water systems, the climate, and the global economy to answer "what if" scenarios about future global change. A major component of GCAM's analysis is land use worldwide. GCAM splits the world into 384 land use regions determined by the intersection of river basins and sociopolitical boundaries. This land is then split into 8 different land types, each with their own unique parameters. [I don't really understand how this part works]  
 
 \newline
-One of the parameters measured by GCAM is the soil organic carbon (SOC) content of soil. [maybe add background about SOC]This is primarily dependent on land use and region. When land use transition occurs, the change in SOC content is simply modeled as a [shape] change between the two SOC values for the initial and final land use over a prescribed number of years, or the soil timescale. Each of GCAM's 32 geopolitical regions have a set soil timescale, ranging from 25 years (for the United States) to 200 years (Russia). The origin of these values is unclear (?) and this project aims to help determine their accuracy. 
+One of the parameters measured by GCAM is the soil organic carbon (SOC) content of soil. [maybe add background about SOC]This is primarily dependent on land use and region. When land use transition occurs, the change in SOC content is simply modeled as a [shape] change between the two SOC values for the initial and final land use over a prescribed number of years, called the soil timescale. Each of GCAM's 32 geopolitical regions have a set soil timescale, ranging from 25 years (for the United States) to 200 years (Russia). The origin of these values is unclear (?) and this project aims to help determine their accuracy. 
 
 
 # Methods
@@ -176,7 +176,7 @@ Full_Comparison <- bind_rows(
 
 
 # Results
-Both the rates and k values differed based on the source of the data. 
+Both the rates and k values differed based on the source of the data (GCAM or experimental ). 
 
 ```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates during land use transition. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
 #Plot overlapping rate histograms for the different rate sources
@@ -215,8 +215,8 @@ However, results changed slightly when the data from Wei et al. was also include
 ```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Post & Kwonfrom both Post & Kwon and Wei et al.", message=FALSE}
 #Plot overlapping k histograms for the different k sources
 ggplot() +
-  geom_histogram(aes(x = Full_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
-  geom_histogram(aes(x = Full_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
+  geom_histogram(aes(x = Full_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5, bins = 75) +
+  geom_histogram(aes(x = Full_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5, bins = 75) +
   xlab('k (y^-1)') + ylab('Count') +
   scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
   theme_light() +
