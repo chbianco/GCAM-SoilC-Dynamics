@@ -31,16 +31,16 @@ library(dplyr)
 library(ggplot2)
 
 #GCAM's SOC data
-soilC <- read.csv(file = 'GCAM_soilC.csv')
+soilC <- read.csv(file = 'Data/GCAM_soilC.csv')
 
 #GCAM's soil timescale list
-timescales <- read.csv(file = 'soil_timescales.csv')
+timescales <- read.csv(file = 'Data/soil_timescales.csv')
 
 #GCAM's land use region list [what does GLU stand for?????]
-glus <- read.csv(file = 'GLU_codes.csv')
+glus <- read.csv(file = 'Data/GLU_codes.csv')
 
 #GCAM's geopolitical region list
-regions <- read.csv('GCAM_regions.csv')
+regions <- read.csv('Data/GCAM_regions.csv')
 
 #Merging the four above data sets
 soilC %>%
@@ -61,7 +61,7 @@ The experimental data compared to GCAM's outputs was taken from Post & Kwon (200
 
 Once fully digitized, the Post & Kwon data was loaded into R as well. Note that there were several entries with missing timeframes or where the location of the sample could not be determined. These were assigned a value of 'NA'. 
 ```{r}
-PostKwon <- read.csv(file= 'Experimental Data.csv', na.strings = c("", "NA"))
+PostKwon <- read.csv(file= 'Data/Experimental Data.csv', na.strings = c("", "NA"))
 ```
 
 Once the experimental data was loaded in, each observation was mapped to is corresponding GCAM data point. This was done by simply adding the previously created GCAM data set to the experimental one by land use region, geopolitical region, and land use. This process was done twice--once for the initial land use and once for the final land use. This meant that, ultimately, each Post & Kwon data point had two associated GCAM SOC values--one for the initial land use, and one for the final land use.  
@@ -115,7 +115,7 @@ k_{exp} = -\frac{ln \left(\frac{1}{\frac{|OC Decrease|}{100} + 1}\right)}{t}
 Again, because of how the k value is computed for the experimental data, the sign was often mismatched. The sign of k corresponds to the opposite of the sign of the rate, which had to be corrected manually.  
 
 ```{r, echo = FALSE}
-Wei <- read.csv(file= 'Wei et al Data.csv', na.strings = c("", "NA"))
+Wei <- read.csv(file= 'Data/Wei et al Data.csv', na.strings = c("", "NA"))
 #Creating the Post & Kwon comparison data 
 PostKwon %>%
   select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate) %>%

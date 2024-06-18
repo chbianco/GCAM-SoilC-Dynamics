@@ -2,11 +2,11 @@
 
 library(dplyr)
 library(ggplot2)
-soilC <- read.csv(file = 'GCAM_soilC.csv')
-Wei <- read.csv(file= 'Wei et al Data.csv', na.strings = c("", "NA"))
-timescales <- read.csv(file = 'soil_timescales.csv')
-glus <- read.csv(file = 'GLU_codes.csv')
-regions <- read.csv('GCAM_regions.csv')
+soilC <- read.csv(file = 'Data/GCAM_soilC.csv')
+Wei <- read.csv(file= 'Data/Wei et al Data.csv', na.strings = c("", "NA"))
+timescales <- read.csv(file = 'Data/soil_timescales.csv')
+glus <- read.csv(file = 'Data/GLU_codes.csv')
+regions <- read.csv('Data/GCAM_regions.csv')
 
 
 #Join GLU codes with soilC data
