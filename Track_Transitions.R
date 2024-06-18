@@ -3,11 +3,11 @@ library(dplyr)
 #Load the transition data into R
 all_transitions <- read.csv(file = 'Data/transitions_combined_GCAM.csv')
 
+#Filter out zeros
 all_transitions %>%
   filter(sqkm_change != 0) -> filtered_transitions
 
-
-
+#Create a function to map the detailed land uses to their simple counterparts
 simple_land <- function(land){
   if(grepl('forest', land)){return('Forest')}
   else if(grepl('grassland', land)){return('Grassland')}
@@ -22,21 +22,44 @@ simple_land <- function(land){
   
 }
 
+#Apply the function to the dataset
 sapply(filtered_transitions$to, simple_land) -> to_Land_Use
 sapply(filtered_transitions$from, simple_land) -> from_Land_Use
 
+#Replace the to and from columns with the simplified version
 filtered_transitions %>%
   mutate(to = to_Land_Use) %>%
   mutate(from = from_Land_Use) %>%
   mutate(change = paste(to, from, sep = '')) -> transitions
-  
+
+#Sum total land use transitions
 transitions %>%
   group_by(change) %>%
   summarize(sum(sqkm_change)) %>%
-  arrange(desc(`sum(sqkm_change)`)) %>%
-  rename(total_skqm_change = `sum(sqkm_change)`) -> total_transitions
+  rename(total_skqm_change = `sum(sqkm_change)`) %>%
+  arrange(desc(total_skqm_change))-> total_transitions
+
+#Sort and sum land use transition by GCAM32 region
+transitions %>%
+  group_by(region_id, change) %>%
+  summarize(sum(sqkm_change)) %>%
+  arrange((region_id)) %>%
+  rename(total_skqm_change = `sum(sqkm_change)`) -> total_transitions_gcam32
+
+#Sort and sum land use transition by basin
+transitions %>%
+  group_by(metric_id, change) %>%
+  summarize(sum(sqkm_change)) %>%
+  arrange((metric_id)) %>%
+  rename(total_skqm_change = `sum(sqkm_change)`) -> total_transitions_glu
+
 
 #Plotting
-ggplot(data = total_transitions, aes(x=change, y=total_skqm_change)) + 
+ggplot(data = total_transitions_gcam32, aes(x=change, y=total_skqm_change)) + 
+  geom_bar(stat='identity') + 
+  facet_wrap(~region_id)
+
+ggplot(data = total_transitions, aes(x = total_skqm_change, y = change)) + 
   geom_bar(stat='identity') 
+
 
