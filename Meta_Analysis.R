@@ -48,7 +48,9 @@ PostKwon %>%
   mutate(Exp_k = ifelse(sign(Exp_k) == sign(Exp_Rate), Exp_k*(-1), Exp_k)) -> PostKwon_Comparison
 
 
-#Now, we get into the actual meta analysis 
+
+#EVERYTHING ABOVE THIS LITERALLY JUST LOADS DATA!!!! DON'T CHANGE IT!!!!!
+##ow, we get into the actual meta analysis 
 
 #First, we need to get mean, std dev, and n
 PostKwon_Comparison %>%
@@ -85,4 +87,7 @@ addpoly(
   PostKwon_fixed_effect_results, 
   col = 'orange', cex = 1, annotate = TRUE, mlab = 'Summary'
 )
+
+#Now we do the same for Wei et al.
+
 
