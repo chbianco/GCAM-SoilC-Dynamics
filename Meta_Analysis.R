@@ -117,6 +117,46 @@ addpoly(
 )
 
 
+#Now, we'll do one for the Post & Kwon k values
+#First, we need to get mean, std dev, and n
+PostKwon_Comparison %>%
+  group_by(GLU_code) %>%
+  summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
+            mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
+  ) -> PostKwon_MA_k_data
+
+#Now, we can use escalc to get the standardized mean difference 
+PostKwon_k_effect_sizes <-
+  escalc('SMD',
+         m1i = mean_control, n1i = n_control, sd1i = sd_control,
+         m2i = mean_GCAM, n2i = n_GCAM, sd2i = sd_GCAM,
+         data = PostKwon_MA_k_data
+  )
+
+#We're going to use a fixed effect model for this analysis, which we set up below
+PostKwon_k_fixed_effect_results <- rma(yi, vi, method = 'FE',
+                                     slab = GLU_code,
+                                     data = PostKwon_k_effect_sizes)
+
+#Forest plot for Post & Kwon k vals
+forest(
+  PostKwon_k_effect_sizes$yi, PostKwon_k_effect_sizes$vi,
+  annotate = FALSE,
+  slab = PostKwon_k_fixed_effect_results$slab,
+  xlab = 'ln(Response Ratio)',
+  #Below sets the size of study labels, shape of bars, and size of x labels 
+  cex = .8, pch = 15, cex.lab = 1
+)
+
+#Adding the summary effect size
+addpoly(
+  PostKwon_k_fixed_effect_results, 
+  col = 'orange', cex = 1, annotate = TRUE, mlab = 'Summary'
+)
+
+
+
+
 #Now we do the same for Wei et al.
 #First, we need to get mean, std dev, and n
 Wei_Comparison %>%
