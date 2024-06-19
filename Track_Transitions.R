@@ -1,4 +1,5 @@
 library(dplyr)
+library(ggplot2)
 
 #Load the transition data into R
 all_transitions <- read.csv(file = 'Data/transitions_combined_GCAM.csv')
@@ -55,11 +56,11 @@ transitions %>%
 
 
 #Plotting
-ggplot(data = total_transitions_gcam32, aes(x=change, y=total_skqm_change)) + 
+ggplot(data = total_transitions_gcam32, aes(x=total_skqm_change, y=change)) + 
   geom_bar(stat='identity') + 
   facet_wrap(~region_id)
+ 
 
 ggplot(data = total_transitions, aes(x = total_skqm_change, y = change)) + 
   geom_bar(stat='identity') 
-
 
