@@ -178,7 +178,7 @@ Wei_fixed_effect_results <- rma(yi, vi, method = 'FE',
                                      slab = GLU_code,
                                      data = Wei_effect_sizes)
 
-#Forest plot for Post & Kwon
+#Forest plot for Wei
 forest(
   Wei_effect_sizes$yi, Wei_effect_sizes$vi,
   annotate = FALSE,
