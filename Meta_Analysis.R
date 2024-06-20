@@ -235,3 +235,47 @@ addpoly(
 
 
 
+
+#Now, a meta analysis by transition type for the entire dataset
+#First, we need to create a column in the merged data for transition type 
+Full_Comparison %>% 
+  mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = '')) -> Full_Comparison_change
+
+#First, we need to get mean, std dev, and n
+Full_Comparison_change %>%
+  group_by(change) %>%
+  summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
+            mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
+  ) -> Full_MA_data_change
+
+#Now, we can use escalc to get the standardized mean difference 
+Full_effect_sizes_change <-
+  escalc('SMD',
+         m1i = mean_control, n1i = n_control, sd1i = sd_control,
+         m2i = mean_GCAM, n2i = n_GCAM, sd2i = sd_GCAM,
+         data = Full_MA_data_change
+  )
+
+#We're going to use a fixed effect model for this analysis, which we set up below
+Full_fixed_effect_results_change <- rma(yi, vi, method = 'FE',
+                                 slab = change,
+                                 data = Full_effect_sizes_change)
+
+#Forest plot for full dataset
+forest(
+  Full_effect_sizes_change$yi, Full_effect_sizes_change$vi,
+  annotate = TRUE,
+  slab = Full_fixed_effect_results_change$slab,
+  xlab = 'ln(Response Ratio)',
+  #Below sets the size of study labels, shape of bars, and size of x labels 
+  cex = .8, pch = 15, cex.lab = 1
+)
+
+#Adding the summary effect size
+addpoly(
+  Full_fixed_effect_results_change, 
+  col = 'orange', cex = 1, annotate = TRUE, mlab = 'Summary'
+)
+
+
+
