@@ -56,11 +56,12 @@ transitions %>%
 
 
 #Plotting
+#Plot by GCAM32 region
 ggplot(data = total_transitions_gcam32, aes(x=total_skqm_change, y=change)) + 
   geom_bar(stat='identity') + 
   facet_wrap(~region_id)
  
-
+#Plot in total
 ggplot(data = total_transitions, aes(x = total_skqm_change, y = change)) + 
   geom_bar(stat='identity') 
 
