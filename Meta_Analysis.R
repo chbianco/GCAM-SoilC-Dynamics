@@ -268,7 +268,7 @@ forest(
   slab = Full_fixed_effect_results_change$slab,
   xlab = 'ln(Response Ratio)',
   #Below sets the size of study labels, shape of bars, and size of x labels 
-  cex = .8, pch = 15, cex.lab = 1
+  cex = .8, pch = 15, cex.lab = 1 
 )
 
 #Adding the summary effect size
