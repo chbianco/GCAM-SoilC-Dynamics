@@ -65,3 +65,18 @@ ggplot(data = total_transitions_gcam32, aes(x=total_skqm_change, y=change)) +
 ggplot(data = total_transitions, aes(x = total_skqm_change, y = change)) + 
   geom_bar(stat='identity') 
 
+
+#Now, we do this for only up until 2015 to see what is more common in the near future
+transitions_soon <- filter(transitions, year > 2015)
+
+transitions_soon %>%  
+  group_by(change) %>%
+  summarize(sum(sqkm_change)) %>%
+  rename(total_skqm_change = `sum(sqkm_change)`) %>%
+  arrange(desc(total_skqm_change))-> total_transitions_soon
+
+#Plot in total for only transitions in the next 10ish years
+ggplot(data = total_transitions_soon, aes(x = total_skqm_change, y = change)) + 
+  geom_bar(stat='identity') 
+
+
