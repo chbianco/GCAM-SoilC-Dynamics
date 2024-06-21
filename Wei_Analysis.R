@@ -66,4 +66,4 @@ ggplot() +
 
 #T test
 t.test(Rate_Comparison$Exp_k, Rate_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
-#According to this, there is not a meaningful difference in the means
+#According to this, there IS not a meaningful difference in the means
