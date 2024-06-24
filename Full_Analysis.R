@@ -92,7 +92,7 @@ ggplot(data = Full_Comparison, aes(x = Exp_k, y = GCAM_k)) +
 ggplot() +
   geom_histogram(aes(x = Full_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
   geom_histogram(aes(x = Full_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
-  xlab('k (y^-1)') + ylab('Count') +
+  xlab(expression(k~(y^-1))) + ylab('Count') +
   scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
   theme_light() +
   labs(title = 'SOC k value comparison during land use transition')
