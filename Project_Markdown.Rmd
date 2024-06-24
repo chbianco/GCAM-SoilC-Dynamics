@@ -16,7 +16,7 @@ Much of the world's carbon is sequestered in soil. Changes in land use greatly i
 There has been ample research on empirical soil organic carbon (SOC) levels worldwide, and several papers have compiled the results of these studies. Specifically, there are many measurements of the rate of SOC change during land use transition. SOC measurements have also been made for many different types of land use transitions, providing a wide range of measurements across different environmental conditions. However, there has not yet been an effort to directly compare these measured SOC rates to those projected by Integrated Assessment Models (IAMs) (?). The factors that influence these rates are highly varied and complex, leading to high levels of uncertainty. This highlights a need to check how SOC rates are modeled against experimental results.  
 
 \newline
-One of these IAMs is the the Global Change Assessment Model (GCAM). GCAM is an open source, multi-sector dynamics model developed primarily by Pacific Northwest National Laboratory's Joint Global Change Research Institute. GCAM represents the behaviors of and interactions between earth's energy and water systems, the climate, and the global economy to answer "what if" scenarios about future global change. A major component of GCAM's analysis is land use worldwide. GCAM splits the world into 384 land use regions determined by the intersection of river basins and sociopolitical boundaries. Each ofd these 384 land use regions is then assigned different proportions of up to 8 different land types based on economic factors. [I don't really understand how this part works]  
+One of these IAMs is the  Global Change Assessment Model (GCAM). GCAM is an open source, multi-sector dynamics model developed primarily by Pacific Northwest National Laboratory's Joint Global Change Research Institute. GCAM represents the behaviors of and interactions between earth's energy and water systems, the climate, and the global economy to answer "what if" scenarios about future global change. A major component of GCAM's analysis is land use worldwide. GCAM splits the world into 384 land use regions determined by the intersection of river basins and sociopolitical boundaries. Each of these 384 land use regions is then assigned different proportions of up to 8 different land types based on economic factors. [I don't really understand how this part works]  
 
 \newline
 One of the parameters measured by GCAM is the soil organic carbon (SOC) content of soil. [maybe add background about SOC]This is primarily dependent on land use and region. When land use transition occurs, the change in SOC content is simply modeled as a [shape] change between the two SOC values for the initial and final land use over a prescribed number of years, called the soil timescale. Each of GCAM's 32 geopolitical regions have a set soil timescale, ranging from 25 years (for the United States) to 200 years (Russia). The origin of these values is unclear (?) and this project aims to help determine their accuracy. 
@@ -299,8 +299,7 @@ A t-test was also performed for the aggregated data set.
 t.test(Full_Comparison$Exp_k, Full_Comparison$GCAM_k, alternative = 'two.sided')
 ```
 
-As can be seen, this indicates that there is a statistically significant difference between the sets of k values for the aggregated data set. The results of all three meta analyses corroborated this result. Each result is presented separately, below.  
-
+ 
 \newline
 Results from the analysis on the Post & Kwon data: 
 ```{r}
