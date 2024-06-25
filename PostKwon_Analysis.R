@@ -79,21 +79,20 @@ ggplot(data = Rate_Comparison, aes(x = Exp_k, y = GCAM_k)) +
 
 #Plot overlapping rate histograms for the different rate sources
 ggplot() +
-  geom_histogram(aes(x = Rate_Comparison$Exp_Rate, fill ='Experimental Rate' ), alpha = 0.5) +
+  geom_histogram(aes(x = Rate_Comparison$Exp_Rate, fill ='Post & Kwon' ), alpha = 0.5) +
   geom_histogram(aes(x = Rate_Comparison$GCAM_Rate, fill = 'GCAM Rate'), alpha = 0.5) +
-  xlab('Rate (kg C/m^2)') + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Experimental Rate' = '#45912c', 'GCAM Rate'='#e3962b')) + 
-  theme_light() +
-  labs(title = 'SOC rate comparison during land use transition')
+  xlab(expression(Rate~(kg~C/m^2))) + ylab('Count') +
+  scale_fill_manual(name = "Data Source", values = c('Post & Kwon' = '#3584B0', 'GCAM Rate'='#e3962b')) + 
+  theme_light() 
 
 
 
 #Plot overlapping k histograms for the different k sources
 ggplot() +
-  geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental'), alpha = 0.5) +
+  geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Post & Kwon'), alpha = 0.5) +
   geom_histogram(aes(x = Rate_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5) +
   xlab(expression(k~(y^-1))) + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Experimental' = '#45912c', 'GCAM'='#e3962b')) +
+  scale_fill_manual(name = "Data Source", values = c('Post & Kwon' = '#3584B0', 'GCAM'='#e3962b')) +
   theme_light()
 
 

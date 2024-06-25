@@ -57,10 +57,10 @@ ggplot(data = Rate_Comparison, aes(x = Exp_k, y = GCAM_k)) +
 
 #Plot overlapping k histograms for the different k sources
 ggplot() +
-  geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental'), alpha = 0.5) +
+  geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Wei et al'), alpha = 0.5) +
   geom_histogram(aes(x = Rate_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5) +
   xlab(expression(k~(y^-1))) + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Experimental' = '#45912c', 'GCAM'='#e3962b')) +
+  scale_fill_manual(name = "Data Source", values = c('Wei et al' = '#45912c', 'GCAM'='#e3962b')) +
   theme_light() 
 
 #T test
