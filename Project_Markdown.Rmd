@@ -63,7 +63,7 @@ soilC %>%
 
 Much of the data contained within the SOC data set is irrelevant to this analysis, so it was removed.
 
-```{r}
+```{r Select-relevant-data}
 soilC_regions %>%
   select(Land_Type, soil_c, GLU_code, Continent, soilTimeScale, GCAM_region_ID) -> simple_soilC_regions
 ```
@@ -90,7 +90,7 @@ k_{exp} = -\frac{ln (Rate \times t + 1)}{t}
 
 The code for merging the GCAM and experimental, as well as for computing the rate and k value is below. 
 
-```{r}
+```{r compare-Post_Kwon}
 PostKwon %>%
   select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate) %>%
   na.omit() %>%
@@ -177,7 +177,7 @@ Wei %>%
 \Newline
 Once the Wei et al. data was matched to its corresponding GCAM outputs, the two data sets (Post& Kwon and Wei et al.) were merged. Importantly, because the rate data does not exist for Wei et al., the rate data was not included in the agregated data set. 
 
-```{r}
+```{r Create-Full-Comparison}
 Full_Comparison <- bind_rows(
   select(PostKwon_Comparison, -Exp_Rate, -Rate_Difference),
   select(Wei_Comparison, -OC_decrease)
@@ -189,7 +189,7 @@ A meta-analysis was also performed on the data. Three separate analyses were per
 \newline
 A fixed effect model was used for the analysis. This means that it is assumed that all the data being examined (ie all the SOC measurements) come from the same general population, or that all the data was collected in the same manner. This obviously applies to the GCAM data, as it is all from the same run of a basic GCAM scenario. [figure out how to talk about why it works for Post & Kwon vs Wei] Because data was reported the same way regardless of the collection location, the same assumptions apply to the Post & Kwon and Wei et al. data.The same procedure was undertaken for the three analyses, so only one code example is shown below:
 
-```{r Meta-Analysis}
+```{r Meta-Analysis-full}
 #First, we need to get mean, std dev, and n
 Full_Comparison %>%
   group_by(GLU_code) %>%
@@ -212,7 +212,7 @@ Full_fixed_effect_results <- rma(yi, vi, method = 'FE',
 
 ```
 
-```{r, echo = FALSE, message=FALSE}
+```{r meta-analysis-individual, echo = FALSE, message=FALSE}
 #First, we need to get mean, std dev, and n
 PostKwon_Comparison %>%
   group_by(GLU_code) %>%
@@ -258,7 +258,7 @@ Wei_fixed_effect_results <- rma(yi, vi, method = 'FE',
 # Results
 Both the rates and k values differed based on the source of the data (GCAM or experimental). 
 
-```{r Historgram_Rate, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates during land use transition. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
+```{r Historgram_Rate-Post-Kwon, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates during land use transition. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
 #Plot overlapping rate histograms for the different rate sources
 ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_Rate, fill ='Experimental Rate' ), alpha = 0.5) +
@@ -270,7 +270,7 @@ ggplot() +
 ```
 
 
-```{r Histogram_K, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
+```{r Histogram_K-Post-Kwon, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
 #Plot overlapping k histograms for the different k sources
 ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
@@ -282,7 +282,7 @@ ggplot() +
 ```
 
 A t-test was also performed on both the rates and k values. As can be seen below, the difference between means of the rate data sets was not statistically significant, but it was for the k values.  
-```{r t-test}
+```{r t-test-Post-Kwon}
 t.test(Rate_Comparison$Exp_Rate, Rate_Comparison$GCAM_Rate, alternative = 'two.sided') ->Rate_T_test
 print(Rate_T_test)
 
@@ -292,7 +292,7 @@ print(k_T_test)
 
 However, results changed slightly when the data from Wei et al. was also included. Post & Kwon is shown separately because it is a more complete data set, including more land use types. It also has rate data. Below are plots comparing k values to GCAM outputs with both Wei et al. and Post & Kwon data. 
 
-```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Post & Kwon from both Post & Kwon and Wei et al.", message=FALSE}
+```{r k-Histogram-full, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from both Post & Kwon and Wei et al.", message=FALSE}
 #Plot overlapping k histograms for the different k sources
 ggplot() +
   geom_histogram(aes(x = Full_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5, bins = 75) +
@@ -305,17 +305,17 @@ ggplot() +
 
 A t-test was also performed for the aggregated data set. 
 
-```{r}
+```{r t-test-full}
 t.test(Full_Comparison$Exp_k, Full_Comparison$GCAM_k, alternative = 'two.sided')
 ```
 
  
 \newline
 Results from the analysis on the Post & Kwon data: 
-```{r}
+```{r meta-analysis-results-Post-Kwon}
 PostKwon_k_fixed_effect_results
 ```
-```{r Forest_Plot, echo = FALSE, fig.cap ='Forest plot detailing the meta analysis performed on the Post & Kwon SOC Data. The data was grouped by GCAM land region (represented by GLU code).' , message = FALSE}
+```{r Forest_Plot-Post-Kwon, echo = FALSE, fig.cap ='Forest plot detailing the meta analysis performed on the Post & Kwon SOC Data. The data was grouped by GCAM land region (represented by GLU code).' , message = FALSE}
 #Forest plot for Post & Kwon k vals
 forest(
   PostKwon_k_effect_sizes$yi, PostKwon_k_effect_sizes$vi,
@@ -336,10 +336,10 @@ addpoly(
 
 Results from the analysis on the Wei et al. data:
 
-```{r}
+```{r  meta-analysis-results-Wei}
 Wei_fixed_effect_results
 ```
-```{r, echo = FALSE, fig.cap ='Forest plot detailing the meta analysis performed on the Wei et al. SOC Data. The data was grouped by GCAM land region (represented by GLU code).' , message = FALSE}
+```{r  Forest_Plot-Wei, echo = FALSE, fig.cap ='Forest plot detailing the meta analysis performed on the Wei et al. SOC Data. The data was grouped by GCAM land region (represented by GLU code).' , message = FALSE}
 #Forest plot for Wei
 forest(
   Wei_effect_sizes$yi, Wei_effect_sizes$vi,
@@ -358,10 +358,10 @@ addpoly(
 ```
 
 Results from the analysis on the aggregated data: 
-```{r}
+```{r meta-analysis-results-Wei}
 Full_fixed_effect_results
 ```
-```{r, echo = FALSE, fig.cap ='Forest plot detailing the meta analysis performed on the aggregated SOC Data. The data was grouped by GCAM land region (represented by GLU code).' , message = FALSE}
+```{r Forest_Plot-Full, echo = FALSE, fig.cap ='Forest plot detailing the meta analysis performed on the aggregated SOC Data. The data was grouped by GCAM land region (represented by GLU code).' , message = FALSE}
 
 #Forest plot for full dataset
 forest(
