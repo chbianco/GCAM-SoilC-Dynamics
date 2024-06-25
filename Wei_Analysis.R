@@ -57,12 +57,11 @@ ggplot(data = Rate_Comparison, aes(x = Exp_k, y = GCAM_k)) +
 
 #Plot overlapping k histograms for the different k sources
 ggplot() +
-  geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
-  geom_histogram(aes(x = Rate_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
-  xlab('k (y^-1)') + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
-  theme_light() +
-  labs(title = 'SOC k value comparison during land use transition')
+  geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental'), alpha = 0.5) +
+  geom_histogram(aes(x = Rate_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5) +
+  xlab(expression(k~(y^-1))) + ylab('Count') +
+  scale_fill_manual(name = "Data Source", values = c('Experimental' = '#45912c', 'GCAM'='#e3962b')) +
+  theme_light() 
 
 #T test
 t.test(Rate_Comparison$Exp_k, Rate_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
