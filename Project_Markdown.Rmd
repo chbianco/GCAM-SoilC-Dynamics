@@ -26,7 +26,7 @@ One of the parameters measured by GCAM is the soil organic carbon (SOC) content 
 
 To begin the analysis, SOC data was taken from a basic run of GCAM [more detail here]. The raw csv files can be found in the supplementary materials, below. Rstudio was used to perform the analysis, as well as the packages dlyr and ggpot2. Note that the SOC data, GCAM's soil timescale list, as well as both the geopolitical regions list and the land use regions list are separate files, and must be merged before any additional steps can be performed. Below is the code used to load the data and libraries, as well as to merge the four files listed above. The final product is a data set where each SOC data point has an associated timescale value, land use region, and geopolitical region.
 
-```{r, message=FALSE}
+```{r Read-In-GCAM-Data, message=FALSE}
 library(dplyr)
 library(ggplot2)
 library(metafor)
@@ -37,13 +37,21 @@ soilC <- read.csv(file = 'Data/GCAM_soilC.csv')
 #GCAM's soil timescale list
 timescales <- read.csv(file = 'Data/soil_timescales.csv')
 
-#GCAM's land use region list [what does GLU stand for?????]
+#GCAM's land use region list 
+# answered below [what does GLU stand for?????]
+#Geographic Land Unit
+#https://gcims.pnnl.gov/modeling/moirai-land-data-amalgamation-gcams-aglu-module
+
 glus <- read.csv(file = 'Data/GLU_codes.csv')
 
 #GCAM's geopolitical region list
 regions <- read.csv('Data/GCAM_regions.csv')
 
 #Merging the four above data sets
+
+#flagging
+#issue here for me -> "GCAM_region_ID" does not exsist in original file versions
+
 soilC %>%
   mutate(GLU_code = GLU) %>%
   right_join(glus, by='GLU_code') %>%
@@ -61,7 +69,7 @@ soilC_regions %>%
 The experimental data compared to GCAM's outputs was taken from Post & Kwon (2008), a review of 88 different SOC measurements from the past 60 years. This data was manually digitized into a CSV file for analysis. This data did not explicitly list site locations for each measurement, so this information was determined from the paper referenced by Post & Kwon. Once the location was determined, it was compared to GCAM's 384 land use regions using the rmap tool and GCAM's basin code mapping file. Then, the GLU code was manually added to the digitized data from Post & Kwon.  
 
 Once fully digitized, the Post & Kwon data was loaded into R as well. Note that there were several entries with missing timeframes or where the location of the sample could not be determined. These were assigned a value of 'NA'. 
-```{r}
+```{r Read-In-Post_Kwon-Data}
 PostKwon <- read.csv(file= 'Data/Experimental Data.csv', na.strings = c("", "NA"))
 ```
 
@@ -115,7 +123,7 @@ k_{exp} = -\frac{ln \left(\frac{1}{\frac{|OC Decrease|}{100} + 1}\right)}{t}
 
 Again, because of how the k value is computed for the experimental data, the sign was often mismatched. The sign of k corresponds to the opposite of the sign of the rate, which had to be corrected manually.  
 
-```{r, echo = FALSE}
+```{r Read-In-Wei_et_al-Data, echo = FALSE}
 Wei <- read.csv(file= 'Data/Wei et al Data.csv', na.strings = c("", "NA"))
 #Creating the Post & Kwon comparison data 
 PostKwon %>%
@@ -179,7 +187,7 @@ A meta-analysis was also performed on the data. Three separate analyses were per
 \newline
 A fixed effect model was used for the analysis. This means that it is assumed that all the data being examined (ie all the SOC measurements) come from the same general population, or that all the data was collected in the same manner. This obviously applies to the GCAM data, as it is all from the same run of a basic GCAM scenario. [figure out how to talk about why it works for Post & Kwon vs Wei] Because data was reported the same way regardless of the collection location, the same assumptions apply to the Post & Kwon and Wei et al. data.The same procedure was undertaken for the three analyses, so only one code example is shown below:
 
-```{r}
+```{r Meta-Analysis}
 #First, we need to get mean, std dev, and n
 Full_Comparison %>%
   group_by(GLU_code) %>%
@@ -248,7 +256,7 @@ Wei_fixed_effect_results <- rma(yi, vi, method = 'FE',
 # Results
 Both the rates and k values differed based on the source of the data (GCAM or experimental). 
 
-```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates during land use transition. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
+```{r Historgram_Rate, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates during land use transition. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
 #Plot overlapping rate histograms for the different rate sources
 ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_Rate, fill ='Experimental Rate' ), alpha = 0.5) +
@@ -260,7 +268,7 @@ ggplot() +
 ```
 
 
-```{r, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
+```{r Histogram_K, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
 #Plot overlapping k histograms for the different k sources
 ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
@@ -272,7 +280,7 @@ ggplot() +
 ```
 
 A t-test was also performed on both the rates and k values. As can be seen below, the difference between means of the rate data sets was not statistically significant, but it was for the k values.  
-```{r}
+```{r t-test}
 t.test(Rate_Comparison$Exp_Rate, Rate_Comparison$GCAM_Rate, alternative = 'two.sided') ->Rate_T_test
 print(Rate_T_test)
 
@@ -306,7 +314,7 @@ Results from the analysis on the Post & Kwon data:
 ```{r}
 PostKwon_k_fixed_effect_results
 ```
-```{r, echo = FALSE, fig.cap ='Forest plot detailing the meta analysis performed on the Post & Kwon SOC Data. The data was grouped by GCAM land region (represented by GLU code).' , message = FALSE}
+```{r Forest_Plot, echo = FALSE, fig.cap ='Forest plot detailing the meta analysis performed on the Post & Kwon SOC Data. The data was grouped by GCAM land region (represented by GLU code).' , message = FALSE}
 #Forest plot for Post & Kwon k vals
 forest(
   PostKwon_k_effect_sizes$yi, PostKwon_k_effect_sizes$vi,
