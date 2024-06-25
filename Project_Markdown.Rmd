@@ -24,7 +24,7 @@ One of the parameters measured by GCAM is the soil organic carbon (SOC) content 
 
 # Methods
 
-To begin the analysis, SOC data was taken from a basic run of GCAM [more detail here]. The raw csv files can be found in the supplementary materials, below. Rstudio was used to perform the analysis, as well as the packages dlyr and ggpot2. Note that the SOC data, GCAM's soil timescale list, as well as both the geopolitical regions list and the land use regions list are separate files, and must be merged before any additional steps can be performed. Below is the code used to load the data and libraries, as well as to merge the four files listed above. The final product is a data set where each SOC data point has an associated timescale value, land use region, and geopolitical region.
+To begin the analysis, SOC data was taken from a basic run of GCAM [more detail here]. The raw csv files can be found in the supplementary materials, below. Rstudio was used to perform the analysis, as well as the packages dplyr and ggplot2. Note that the SOC data, GCAM's soil timescale list, as well as both the geopolitical regions list and the land use regions list are separate files, and must be merged before any additional steps can be performed. Below is the code used to load the data and libraries, as well as to merge the four files listed above. The final product is a data set where each SOC data point has an associated timescale value, land use region, and geopolitical region.
 
 ```{r, message=FALSE}
 library(dplyr)
@@ -38,12 +38,15 @@ soilC <- read.csv(file = 'Data/GCAM_soilC.csv')
 timescales <- read.csv(file = 'Data/soil_timescales.csv')
 
 #GCAM's land use region list [what does GLU stand for?????]
+#Geographic Land Unit
+#https://gcims.pnnl.gov/modeling/moirai-land-data-amalgamation-gcams-aglu-module
 glus <- read.csv(file = 'Data/GLU_codes.csv')
 
 #GCAM's geopolitical region list
 regions <- read.csv('Data/GCAM_regions.csv')
 
 #Merging the four above data sets
+#issue here for me -> "GCAM_region_ID" does not exsist in original file versions
 soilC %>%
   mutate(GLU_code = GLU) %>%
   right_join(glus, by='GLU_code') %>%
@@ -58,7 +61,7 @@ soilC_regions %>%
   select(Land_Type, soil_c, GLU_code, Continent, soilTimeScale, GCAM_region_ID) -> simple_soilC_regions
 ```
 
-The experimental data compared to GCAM's outputs was taken from Post & Kwon (2008), a review of 88 different SOC measurements from the past 60 years. This data was manually digitized into a CSV file for analysis. This data did not explicitly list site locations for each measurement, so this information was determined from the paper referenced by Post & Kwon. Once the location was determined, it was compared to GCAM's 384 land use regions using the rmap tool and GCAM's basin code mapping file. Then, the GLU code was manually added to the digitized data from Post & Kwon.  
+The experimental data compared to GCAM's outputs was taken from Post & Kwon (2008), a review of 88 different SOC dynamics post land-use change from the past 60 years. This data was manually digitized into a CSV file for analysis. This data did not explicitly list site locations for each measurement, so this information was determined from the paper referenced by Post & Kwon. Once the location was determined, it was compared to GCAM's 384 land use regions using the rmap tool and GCAM's basin code mapping file. Then, the GLU code was manually added to the digitized data from Post & Kwon.  
 
 Once fully digitized, the Post & Kwon data was loaded into R as well. Note that there were several entries with missing timeframes or where the location of the sample could not be determined. These were assigned a value of 'NA'. 
 ```{r}
@@ -78,7 +81,7 @@ k_{exp} = -\frac{ln \left(\frac{C_f}{C_0}\right)}{t}
 k_{exp} = -\frac{ln (Rate \times t + 1)}{t}
 \end{equation}
 
-The code for merging the GCAM and experimental, as well as for computing the rate and k value is below. 
+The code for merging the GCAM and experimental data, as well as for computing the rate and k value is below. 
 
 ```{r}
 PostKwon %>%
