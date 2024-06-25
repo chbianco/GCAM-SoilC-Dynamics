@@ -37,7 +37,8 @@ soilC <- read.csv(file = 'Data/GCAM_soilC.csv')
 #GCAM's soil timescale list
 timescales <- read.csv(file = 'Data/soil_timescales.csv')
 
-#GCAM's land use region list [what does GLU stand for?????]
+#GCAM's land use region list 
+# answered below [what does GLU stand for?????]
 #Geographic Land Unit
 #https://gcims.pnnl.gov/modeling/moirai-land-data-amalgamation-gcams-aglu-module
 glus <- read.csv(file = 'Data/GLU_codes.csv')
@@ -46,6 +47,7 @@ glus <- read.csv(file = 'Data/GLU_codes.csv')
 regions <- read.csv('Data/GCAM_regions.csv')
 
 #Merging the four above data sets
+#flagging
 #issue here for me -> "GCAM_region_ID" does not exsist in original file versions
 soilC %>%
   mutate(GLU_code = GLU) %>%
