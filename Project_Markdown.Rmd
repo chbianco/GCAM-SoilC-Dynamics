@@ -35,7 +35,8 @@ library(metafor)
 soilC <- read.csv(file = 'Data/GCAM_soilC.csv')
 
 #GCAM's soil timescale list
-timescales <- read.csv(file = 'Data/soil_timescales.csv')
+read.csv(file = 'Data/soil_timescales.csv') %>%
+  mutate(GCAM_region_ID = seq(1,32,by=1))-> timescales
 
 #GCAM's land use region list 
 # answered below [what does GLU stand for?????]
@@ -50,7 +51,8 @@ regions <- read.csv('Data/GCAM_regions.csv')
 #Merging the four above data sets
 
 #flagging
-#issue here for me -> "GCAM_region_ID" does not exsist in original file versions
+#issue here for me -> "GCAM_region_ID" does not exist in original file versions
+
 
 soilC %>%
   mutate(GLU_code = GLU) %>%
