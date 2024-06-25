@@ -105,7 +105,7 @@ forest(
   PostKwon_effect_sizes$yi, PostKwon_effect_sizes$vi,
   annotate = FALSE,
   slab = PostKwon_fixed_effect_results$slab,
-  xlab = 'ln(Response Ratio)',
+  xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
@@ -183,7 +183,7 @@ forest(
   Wei_effect_sizes$yi, Wei_effect_sizes$vi,
   annotate = FALSE,
   slab = Wei_fixed_effect_results$slab,
-  xlab = 'ln(Response Ratio)',
+  xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
@@ -222,7 +222,7 @@ forest(
   Full_effect_sizes$yi, Full_effect_sizes$vi,
   annotate = TRUE,
   slab = Full_fixed_effect_results$slab,
-  xlab = 'ln(Response Ratio)',
+  xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
@@ -266,7 +266,7 @@ forest(
   Full_effect_sizes_change$yi, Full_effect_sizes_change$vi,
   annotate = TRUE,
   slab = Full_fixed_effect_results_change$slab,
-  xlab = 'ln(Response Ratio)',
+  xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1 
 )
