@@ -45,7 +45,7 @@ PostKwon %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
          Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/Time, 
+         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale, 
          ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
   mutate(Exp_k = ifelse(sign(Exp_k) == sign(Exp_Rate), Exp_k*(-1), Exp_k)) -> Rate_Comparison

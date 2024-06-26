@@ -41,7 +41,7 @@ PostKwon %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
          Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/Time, 
+         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale, 
          source = 'Post & Kwon'
   ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
@@ -62,7 +62,7 @@ Wei %>%
   rename(soilTimeScale = soilTimeScale.y, Basin_long_name = Basin_long_name.y) %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/Time,
+         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale,
          Exp_k = -log(1/((abs(OC_decrease)/100) +1))/Time,
          source = 'Wei et al'
   ) %>%
@@ -104,20 +104,19 @@ PostKwon_fixed_effect_results <- rma(yi, vi, method = 'FE',
 forest(
   PostKwon_effect_sizes$yi, PostKwon_effect_sizes$vi,
   annotate = TRUE,showweights = TRUE,
+  header = c('Transition Type', 'Weight            SMD [95% CI]'),
   slab = PostKwon_fixed_effect_results$slab,
   xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
 
-text(-320, 8.5, "Region", pos=4)
-text(190,  8.5, "Weight   SMD [95% CI]", pos=2)
-
 #Adding the summary effect size
 addpoly(
   PostKwon_fixed_effect_results, 
   col = 'orange', cex = 1, annotate = TRUE, mlab = 'Summary'
 )
+
 
 
 #Now, we'll do one for the Post & Kwon k values
@@ -145,14 +144,14 @@ PostKwon_k_fixed_effect_results <- rma(yi, vi, method = 'FE',
 forest(
   PostKwon_k_effect_sizes$yi, PostKwon_k_effect_sizes$vi,
   annotate = TRUE, showweights = TRUE,
+  header = c('Transition Type', 'Weight            SMD [95% CI]'),
   slab = PostKwon_k_fixed_effect_results$slab,
   xlab = 'ln(Response Ratio)',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
 
-text(-24, 8.5, "Region", pos=4)
-text(34,  8.5, "Weight   SMD [95% CI]", pos=2)
+
 
 #Adding the summary effect size
 addpoly(
@@ -188,14 +187,14 @@ Wei_fixed_effect_results <- rma(yi, vi, method = 'FE',
 forest(
   Wei_effect_sizes$yi, Wei_effect_sizes$vi,
   annotate = TRUE, showweights = TRUE,
+  header = c('Transition Type', 'Weight            SMD [95% CI]'),
   slab = Wei_fixed_effect_results$slab,
   xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
 
-text(-15, 33, "Region", pos=4)
-text(12,  33, "Weight   SMD [95% CI]", pos=2)
+
 
 #Adding the summary effect size
 addpoly(
@@ -230,15 +229,13 @@ Full_fixed_effect_results <- rma(yi, vi, method = 'FE',
 forest(
   Full_effect_sizes$yi, Full_effect_sizes$vi,
   annotate = TRUE,showweights = TRUE,
+  header = c('Transition Type', 'Weight            SMD [95% CI]'),
   slab = Full_fixed_effect_results$slab,
   xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
 
-#Adding column headers
-text(-15, 38, "Region", pos=4)
-text(12,  38, "Weight   SMD [95% CI]", pos=2)
 
 #Adding the summary effect size
 addpoly(
@@ -278,6 +275,7 @@ Full_fixed_effect_results_change <- rma(yi, vi, method = 'FE',
 forest(
   Full_effect_sizes_change$yi, Full_effect_sizes_change$vi,
   annotate = TRUE, showweights = TRUE, 
+  header = c('Transition Type', 'Weight         SMD [95% CI]'),
   slab = Full_fixed_effect_results_change$slab,
   xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
@@ -285,8 +283,7 @@ forest(
 )
 
 #Adding column headers
-text(-8.5, 8.5, "Transition Type", pos=4)
-text(6,  8.5, "Weight   SMD [95% CI]", pos=2)
+
 
 
 

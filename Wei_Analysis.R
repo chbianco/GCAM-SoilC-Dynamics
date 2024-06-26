@@ -36,7 +36,7 @@ Wei %>%
   rename(soilTimeScale = soilTimeScale.y) %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/Time,
+         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale,
          Exp_k = -log(1/((abs(OC_decrease)/100) +1))/Time,
   ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
@@ -65,4 +65,4 @@ ggplot() +
 
 #T test
 t.test(Rate_Comparison$Exp_k, Rate_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
-#According to this, there IS not a meaningful difference in the means
+#According to this, there is a meaningful difference in the means

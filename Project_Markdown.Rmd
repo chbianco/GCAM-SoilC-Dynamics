@@ -8,23 +8,24 @@ date: "`r format(Sys.time(), '%d %B %Y')`"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 # Abstract
-Much of the world's carbon is sequestered in soil. Changes in land use greatly impact whether this carbon remains stored or if it is emitted back into the atmosphere as carbon dioxide. These changes to the carbon cycle are modeled by many Integrated Assessment Models (IAMs). One notable IAM is the Global Change Analysis Model (GCAM). GCAM uses a highly simplified process to represent soil carbon changes, which has not yet been compared to experimental process. This study compared [###] of soil organic carbon (SOC) measurements to GCAM's soil carbon output data to determine the accuracy of GCAM's modeling. We found that both the experimental rates of SOC change and the turnover rate constant differed significantly from the same values outputted from GCAM. These results highlight the importance of updating how GCAM models soil carbon content change during land use transition.
-
+Much of the world's carbon is sequestered in soil. Changes in land use greatly impact whether this carbon remains stored or if it is emitted back into the atmosphere as carbon dioxide, which as broad climate change and global warming implications. These changes to the carbon cycle and their effects are modeled by many Integrated Assessment Models (IAMs). One notable IAM is the Global Change Analysis Model (GCAM). GCAM uses a highly simplified process to represent soil carbon changes, which has not yet been compared to experimental process. This study compared data from two papers aggregating experimental SOC data from previous studies to GCAM's soil carbon output data to determine the accuracy of GCAM's modeling. A meta-analysis was used to determine if such a difference existed and whether the difference was consistent across all tested geographical areas. We found that both the experimental rates of SOC change and the turnover rate constant differed significantly from the same values outputted from GCAM. Specifically, we found that GCAM significantly overestimates the rate of SOC turnover during land use transition. These results highlight the importance of updating how GCAM models soil carbon content change during land use transition.
 
 # Introduction
 
-There has been ample research on empirical soil organic carbon (SOC) levels worldwide, and several papers have compiled the results of these studies. Specifically, there are many measurements of the rate of SOC change during land use transition. SOC measurements have also been made for many different types of land use transitions, providing a wide range of measurements across different environmental conditions. However, there has not yet been an effort to directly compare these measured SOC rates to those projected by Integrated Assessment Models (IAMs) (?). The factors that influence these rates are highly varied and complex, leading to high levels of uncertainty. This highlights a need to check how SOC rates are modeled against experimental results.  
+There has been ample research on empirical soil organic carbon (SOC) levels worldwide, and several papers have compiled the results of these studies (Post  & Kwon 200, Wei et al. 2014). Specifically, there are many measurements of the rate of SOC change during land use transition. SOC measurements have also been made for many different types of land use transitions, providing a wide range of measurements across different environmental conditions. However, there has not yet been an effort to directly compare these measured SOC rates to those projected by Integrated Assessment Models (IAMs) . The factors that influence these rates are highly varied and complex, leading to high levels of uncertainty (Sulman et al. 2018). This highlights a need to check how SOC rates are modeled against experimental results.  
 
 \newline
-One of these IAMs is the  Global Change Assessment Model (GCAM). GCAM is an open source, multi-sector dynamics model developed primarily by Pacific Northwest National Laboratory's Joint Global Change Research Institute. GCAM represents the behaviors of and interactions between earth's energy and water systems, the climate, and the global economy to answer "what if" scenarios about future global change. A major component of GCAM's analysis is land use worldwide. GCAM splits the world into 384 land use regions determined by the intersection of river basins and sociopolitical boundaries. Each of these 384 land use regions is then assigned different proportions of up to 8 different land types based on economic factors. [I don't really understand how this part works]  
+SOC storage has wide ranging climate impacts: roughly 25% of anthropogenic carbon emissions are absorbed by land ecosystems (Reuhr et al. 2023). Additionally, land use modification is a potential strategy to limit atmospheric CO2 and reduce the overall need to lower carbon emissions (Wise et al. 2009). For these reasons, accurate modeling and predicting of SOC levels and change is important to correctly gauge the effectiveness of various climate change mitigation strategies. 
 
 \newline
-One of the parameters measured by GCAM is the soil organic carbon (SOC) content of soil. [maybe add background about SOC]This is primarily dependent on land use and region. When land use transition occurs, the change in SOC content is simply modeled as a [shape] change between the two SOC values for the initial and final land use over a prescribed number of years, called the soil timescale. Each of GCAM's 32 geopolitical regions have a set soil timescale, ranging from 25 years (for the United States) to 200 years (Russia). The origin of these values is unclear (?) and this project aims to help determine their accuracy. 
+One  of the IAMs that models SOC is the Global Change Assessment Model (GCAM ). GCAM is an open source, multi-sector dynamics model developed primarily by Pacific Northwest National Laboratory's Joint Global Change Research Institute. GCAM represents the behaviors of and interactions between earth's energy and water systems, the climate, and the global economy to answer "what if" scenarios about future global change. A major component of GCAM's analysis is land use worldwide. GCAM splits the world into 384 land use regions determined by the intersection of river basins and sociopolitical boundaries. Each of these 384 land use regions is then assigned different proportions of up to 8 different land types based on economic factors. These proportions change with time, allowing GCAM to model land use change based on economic, environmental, and sociopolitical factors.  
 
+\newline
+One of the parameters measured by GCAM is the soil organic carbon (SOC) content of soil. SOC arises from decomposing plants and animals that are broken down by microbes. While some of the carbon from this organic matter is emitted back into the atmosphere, much of it remains in the soil. However, many factors can cause SOC to be emitted back into the atmosphere even after it has already been sequestered. One primary cause of this change is land use transition. For example, when grassland soil is tilled for conversion to farmland, much of the surface soil is disturbed and exposed to aeration, emitting CO2. In GCAM, SOC change during land use transition is solely dependent on land use and region. When land use transition occurs, the change in SOC content is simply modeled as a [shape ] change between the two SOC values for the initial and final land use over a prescribed number of years, called the soil timescale. Each of GCAM's 32 geopolitical regions have a set soil timescale, ranging from 25 years (for the United States) to 200 years (Russia). While this kind of simplified modeling approach can be accurate, GCAMs approach should still be tested  (Menichetti et al. 2019).   The origin of the soil timescale values is also unclear (?)  and this project aims to help determine their accuracy.
 
 # Methods
 
-To begin the analysis, SOC data was taken from a basic run of GCAM [more detail here]. The raw csv files can be found in the supplementary materials, below. Rstudio was used to perform the analysis, as well as the packages dlyr and ggpot2. Note that the SOC data, GCAM's soil timescale list, as well as both the geopolitical regions list and the land use regions list are separate files, and must be merged before any additional steps can be performed. Below is the code used to load the data and libraries, as well as to merge the four files listed above. The final product is a data set where each SOC data point has an associated timescale value, land use region, and geopolitical region.
+To begin the analysis, SOC data was taken from a basic run of GCAM, called a reference scenario. This models “business as usual” for the world, without any extra climate policies and assuming a certain level of overall warming . Table S1 contains all relevant data from this reference scenario used in our analysis, which was performed using R. Note that the SOC data, GCAM's soil timescale list, as well as both the geopolitical regions list and the land use regions list are separate files, and must be merged before any additional steps can be performed. Below is the code used to load the data and libraries, as well as to merge the four files listed above. The final product is a data set where each SOC data point has an associated timescale value, land use region, and geopolitical region.
 
 ```{r Read-In-GCAM-Data, message=FALSE}
 library(dplyr)
@@ -65,19 +66,22 @@ Much of the data contained within the SOC data set is irrelevant to this analysi
 
 ```{r Select-relevant-data}
 soilC_regions %>%
-  select(Land_Type, soil_c, GLU_code, Continent, soilTimeScale, GCAM_region_ID) -> simple_soilC_regions
+  select(Land_Type, soil_c, GLU_code, soilTimeScale, GCAM_region_ID, Basin_long_name) -> simple_soilC_regions
 ```
 
-The experimental data compared to GCAM's outputs was taken from Post & Kwon (2008), a review of 88 different SOC measurements from the past 60 years. This data was manually digitized into a CSV file for analysis. This data did not explicitly list site locations for each measurement, so this information was determined from the paper referenced by Post & Kwon. Once the location was determined, it was compared to GCAM's 384 land use regions using the rmap tool and GCAM's basin code mapping file. Then, the GLU code was manually added to the digitized data from Post & Kwon.  
+The experimental data compared to GCAM's outputs was taken from Post & Kwon (2000) and Wei et al. (2014), both reviews of  SOC measurements from the past 70 years. This data was manually digitized into a CSV file for analysis. This data did not explicitly list site locations for each measurement, so this information was determined from the paper referenced by the two studies. Once the location was determined, it was compared to GCAM's 384 land use regions using the rmap tool and GCAM's basin code mapping file. Then, the GLU code was manually added to the digitized data from Post & Kwon.  
 
-Once fully digitized, the Post & Kwon data was loaded into R as well. Note that there were several entries with missing timeframes or where the location of the sample could not be determined. These were assigned a value of 'NA'. 
-```{r Read-In-Post_Kwon-Data}
+Once fully digitized, the experimental data was loaded into R as well. Note that there were several entries with missing timeframes or where the location of the sample could not be determined. These were assigned a value of 'NA'. 
+
+```{r Read-In-Experimental-Data}
 PostKwon <- read.csv(file= 'Data/Experimental Data.csv', na.strings = c("", "NA"))
+Wei <- read.csv(file= 'Data/Wei et al Data.csv', na.strings = c("", "NA"))
+
 ```
 
-Once the experimental data was loaded in, each observation was mapped to is corresponding GCAM data point. This was done by simply adding the previously created GCAM data set to the experimental one by land use region, geopolitical region, and land use. This process was done twice--once for the initial land use and once for the final land use. This meant that, ultimately, each Post & Kwon data point had two associated GCAM SOC values--one for the initial land use, and one for the final land use.  
+Once the experimental data was loaded in, each observation was mapped to is corresponding GCAM data point. This was done by simply adding the previously created GCAM data set to the experimental one by land use region, geopolitical region, and land use. This process was done twice--once for the initial land use and once for the final land use. This meant that, ultimately, each experimental data point had two associated GCAM SOC values--one for the initial land use, and one for the final land use.  
 
-This then allowed us to compute the GCAM SOC rate during land use change. This was done by simply subtracting the initial SOC value from the final value and dividing that by the total time the land use transition took (contained within the Post & Kwon data). Finally, the k value (explained in depth in Wei et al.) was computed for both the experimental and GCAM data. The experimental and GCAM k values were computed using equations 1 and 2, respectively, below. [where should I put the derivations for this?]
+This then allowed us to compute the GCAM SOC rate during land use change. This was done by simply subtracting the initial SOC value from the final value and dividing that by GCAMs soil timescale parameter. Finally, the k value (explained in depth in Wei et al.) was computed for both the experimental and GCAM data. The experimental and GCAM k values were computed using equations 1 and 2, respectively, below.
 \begin{equation}
 \tag{1}
 k_{exp} = -\frac{ln \left(\frac{C_f}{C_0}\right)}{t}
@@ -88,46 +92,17 @@ k_{exp} = -\frac{ln \left(\frac{C_f}{C_0}\right)}{t}
 k_{exp} = -\frac{ln (Rate \times t + 1)}{t}
 \end{equation}
 
-The code for merging the GCAM and experimental, as well as for computing the rate and k value is below. 
-
-```{r compare-Post_Kwon}
-PostKwon %>%
-  select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate) %>%
-  na.omit() %>%
-  mutate(Land_Type = Initial_Land_Use) %>%
-  right_join( select(simple_soilC_regions, -Continent), by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
-  rename(initial_soil_c = soil_c) %>%
-  select(-Land_Type) %>%
-  mutate(Land_Type = Final_Land_Use) %>%
-  right_join( select(simple_soilC_regions, -Continent), by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
-  rename(final_soil_c = soil_c) %>%
-  select(-Land_Type, -soilTimeScale.x) %>%
-  rename(soilTimeScale = soilTimeScale.y) %>%
-  na.omit() %>%
-  mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
-         Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/Time, 
-         ) %>%
-  #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
-  mutate(Exp_k = ifelse(sign(Exp_k) == sign(Exp_Rate), Exp_k*(-1), Exp_k)) -> Rate_Comparison
-
-```
-
-Note that, because of how the k value is computed for the experimental data, the sign was often mismatched. The sign of k corresponds to the opposite of the sign of the rate, which had to be corrected manually.  
-
 \newline
-Experimental data from Wei et al. was also compared to GCAM's outputs using the same procedure. However, this data did not contain any raw rate information. Instead, the study only reported percent decrease in SOC concentration. This means we were only able to compare k values between the Wei et. al. data and GCAM. Additionally, k had to b computed with a modified equation, 3, below. 
+Experimental data from Wei et al. did not contain any raw rate information. Instead, the study only reported percent decrease in SOC concentration. This means we were only able to compare k values between the Wei et. al. data and GCAM. Additionally, k had to be computed with a modified equation, 3, below. 
 
 \begin{equation}
 \tag{3}
 k_{exp} = -\frac{ln \left(\frac{1}{\frac{|OC Decrease|}{100} + 1}\right)}{t}
 \end{equation}
 
-Again, because of how the k value is computed for the experimental data, the sign was often mismatched. The sign of k corresponds to the opposite of the sign of the rate, which had to be corrected manually.  
+The code for merging the GCAM and experimental, as well as for computing the rate and k value is below. The process was the same for the Wei et al. data. 
 
-```{r Read-In-Wei_et_al-Data, echo = FALSE}
-Wei <- read.csv(file= 'Data/Wei et al Data.csv', na.strings = c("", "NA"))
-#Creating the Post & Kwon comparison data 
+```{r create_comparison_Post_Kwon}
 PostKwon %>%
   select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate) %>%
   na.omit() %>%
@@ -138,19 +113,24 @@ PostKwon %>%
   mutate(Land_Type = Final_Land_Use) %>%
   right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
   rename(final_soil_c = soil_c) %>%
-  select(-Land_Type, -soilTimeScale.x) %>%
-  rename(soilTimeScale = soilTimeScale.y) %>%
+  select(-Land_Type, -soilTimeScale.x, -Basin_long_name.x) %>%
+  rename(soilTimeScale = soilTimeScale.y, Basin_long_name = Basin_long_name.y) %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
          Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/Time, 
+         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale, 
          source = 'Post & Kwon'
   ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
   mutate(Exp_k = ifelse(sign(Exp_k) == sign(Exp_Rate), Exp_k*(-1), Exp_k)) -> PostKwon_Comparison
+```
+
+Note that, because of how the k value is computed for the experimental data, the sign was often mismatched. The sign of k corresponds to the opposite of the sign of the rate, which had to be corrected manually.  
 
 
-#Creating the Wei et al comparison data
+
+```{r create_comparison_Wei, echo = FALSE}
+#Creating Wei comparison data
 Wei %>%
   select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, OC_decrease, Time) %>%
   na.omit() %>%
@@ -161,11 +141,11 @@ Wei %>%
   mutate(Land_Type = Final_Land_Use) %>%
   right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
   rename(final_soil_c = soil_c) %>%
-  select(-Land_Type, -soilTimeScale.x) %>%
-  rename(soilTimeScale = soilTimeScale.y) %>%
+  select(-Land_Type, -soilTimeScale.x, -Basin_long_name.x) %>%
+  rename(soilTimeScale = soilTimeScale.y, Basin_long_name = Basin_long_name.y) %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/Time,
+         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale,
          Exp_k = -log(1/((abs(OC_decrease)/100) +1))/Time,
          source = 'Wei et al'
   ) %>%
@@ -175,7 +155,7 @@ Wei %>%
 
 
 \Newline
-Once the Wei et al. data was matched to its corresponding GCAM outputs, the two data sets (Post& Kwon and Wei et al.) were merged. Importantly, because the rate data does not exist for Wei et al., the rate data was not included in the agregated data set. 
+Once the experimental data was matched to its corresponding GCAM outputs, the two data sets (Post& Kwon and Wei et al.) were merged. Importantly, because the rate data does not exist for Wei et al., the rate data was not included in the aggregated data set. 
 
 ```{r Create-Full-Comparison}
 Full_Comparison <- bind_rows(
@@ -184,15 +164,15 @@ Full_Comparison <- bind_rows(
   )
 ```
 
-A meta-analysis was also performed on the data. Three separate analyses were performed--one on the Post & Kwon data, one on the Wei et al. data, and one on the aggregated data set. All three examined the k value data so the results from all three tests could be reasonably compared to one another. The Standardized Mean Difference effect size was used for the analyses. Specifically, Hedges' g was used to calculate the Standardized Mean difference once the data was grouped by GCAM land use region. This allowed us to determine if there was a pattern in any potential discrepancies between GCAM and experimental data, or if any variance was localized geographically and/or random.  
+Once  the k values were calculated, meta-analyses were performed on the data. Three separate analyses were performed--one on the Post & Kwon data, one on the Wei et al. data, and one on the aggregated data set. All three examined the k value data so the results from all three tests could be reasonably compared to one another. The Standardized Mean Difference effect size was used for the analyses. Specifically, Hedges' g was used to calculate the Standardized Mean difference once the data was grouped by GCAM land use region. This allowed us to determine if there was a pattern in any potential discrepancies between GCAM and experimental data, or if any variance was localized geographically and/or random.  
 
 \newline
-A fixed effect model was used for the analysis. This means that it is assumed that all the data being examined (ie all the SOC measurements) come from the same general population, or that all the data was collected in the same manner. This obviously applies to the GCAM data, as it is all from the same run of a basic GCAM scenario. [figure out how to talk about why it works for Post & Kwon vs Wei] Because data was reported the same way regardless of the collection location, the same assumptions apply to the Post & Kwon and Wei et al. data.The same procedure was undertaken for the three analyses, so only one code example is shown below:
-
-```{r Meta-Analysis-full}
+A fixed effect model was used for the analysis. This means that it is assumed that all the data being examined (ie all the SOC measurements) come from the same general population, and that all the data was collected in the same manner. This obviously applies to the GCAM data, as it is all from the same run of a basic GCAM scenario. Because data was reported the same way regardless of the collection location, the same assumptions apply to the Post & Kwon and Wei et al. data. 
+```{r Meta-Analysis-full, warning=FALSE}
+#Meta-analysis for the aggregated data set 
 #First, we need to get mean, std dev, and n
 Full_Comparison %>%
-  group_by(GLU_code) %>%
+  group_by(Basin_long_name) %>%
   summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
             mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
   ) -> Full_MA_data
@@ -207,15 +187,38 @@ Full_effect_sizes <-
 
 #We're going to use a fixed effect model for this analysis, which we set up below
 Full_fixed_effect_results <- rma(yi, vi, method = 'FE',
-                                     slab = GLU_code,
+                                     slab = Basin_long_name,
                                      data = Full_effect_sizes)
 
 ```
 
-```{r meta-analysis-individual, echo = FALSE, message=FALSE}
+```{r meta-analyses-individual, echo = FALSE, message=FALSE, warning=FALSE}
+#Now, for the Post & Kwon rates
 #First, we need to get mean, std dev, and n
 PostKwon_Comparison %>%
-  group_by(GLU_code) %>%
+  group_by(Basin_long_name) %>%
+  summarize(mean_control = mean(Exp_Rate), sd_control= sd(Exp_Rate), n_control = n(),
+            mean_GCAM = mean(GCAM_Rate), sd_GCAM = sd(GCAM_Rate), n_GCAM = n()
+            ) -> PostKwon_MA_data
+
+#Now, we can use escalc to get the standardized mean difference 
+PostKwon_effect_sizes <-
+  escalc('SMD',
+    m1i = mean_control, n1i = n_control, sd1i = sd_control,
+    m2i = mean_GCAM, n2i = n_GCAM, sd2i = sd_GCAM,
+    data = PostKwon_MA_data
+  )
+
+#We're going to use a fixed effect model for this analysis, which we set up below
+PostKwon_fixed_effect_results <- rma(yi, vi, method = 'FE',
+                                     slab = Basin_long_name,
+                                     data = PostKwon_effect_sizes)
+
+
+#Now, we'll do one for the Post & Kwon k values
+#First, we need to get mean, std dev, and n
+PostKwon_Comparison %>%
+  group_by(Basin_long_name) %>%
   summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
             mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
   ) -> PostKwon_MA_k_data
@@ -230,12 +233,14 @@ PostKwon_k_effect_sizes <-
 
 #We're going to use a fixed effect model for this analysis, which we set up below
 PostKwon_k_fixed_effect_results <- rma(yi, vi, method = 'FE',
-                                     slab = GLU_code,
+                                     slab = Basin_long_name,
                                      data = PostKwon_k_effect_sizes)
-#Now for the Wei et al. data
+
+
+#Now we do the same for Wei et al.
 #First, we need to get mean, std dev, and n
 Wei_Comparison %>%
-  group_by(GLU_code) %>%
+  group_by(Basin_long_name) %>%
   summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
             mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
   ) -> Wei_MA_data
@@ -250,60 +255,93 @@ Wei_effect_sizes <-
 
 #We're going to use a fixed effect model for this analysis, which we set up below
 Wei_fixed_effect_results <- rma(yi, vi, method = 'FE',
-                                     slab = GLU_code,
+                                     slab = Basin_long_name,
                                      data = Wei_effect_sizes)
+
+
+#Now for the whole data set by transition type
+#First, we need to create a column in the merged data for transition type 
+Full_Comparison %>% 
+  mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = '')) -> Full_Comparison_change
+
+#Now, we need to get mean, std dev, and n
+Full_Comparison_change %>%
+  group_by(change) %>%
+  summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
+            mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
+  ) -> Full_MA_data_change
+
+#Now, we can use escalc to get the standardized mean difference 
+Full_effect_sizes_change <-
+  escalc('SMD',
+         m1i = mean_control, n1i = n_control, sd1i = sd_control,
+         m2i = mean_GCAM, n2i = n_GCAM, sd2i = sd_GCAM,
+         data = Full_MA_data_change
+  )
+
+#We're going to use a fixed effect model for this analysis, which we set up below
+Full_fixed_effect_results_change <- rma(yi, vi, method = 'FE',
+                                 slab = change,
+                                 data = Full_effect_sizes_change)
 ```
 
 
 # Results
-Both the rates and k values differed based on the source of the data (GCAM or experimental). 
-
-```{r Historgram_Rate-Post-Kwon, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates during land use transition. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
+Overall, GCAMs rate and k value outputs matched experimental values. 
+```{r Historgram_Rate-Post-Kwon, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates during land use transition. Here, the experimental data is taken from Post & Kwon.", message=FALSE}
 #Plot overlapping rate histograms for the different rate sources
 ggplot() +
-  geom_histogram(aes(x = Rate_Comparison$Exp_Rate, fill ='Experimental Rate' ), alpha = 0.5) +
-  geom_histogram(aes(x = Rate_Comparison$GCAM_Rate, fill = 'GCAM Rate'), alpha = 0.5) +
-  xlab('Rate (kg C/m^2-y)') + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Experimental Rate' = '#45912c', 'GCAM Rate'='#e3962b')) + 
-  theme_light() +
-  labs(title = 'SOC rate comparison during land use transition')
+  geom_histogram(aes(x = PostKwon_Comparison$Exp_Rate, fill ='Post & Kwon' ), alpha = 0.5) +
+  geom_histogram(aes(x = PostKwon_Comparison$GCAM_Rate, fill = 'GCAM Rate'), alpha = 0.5) +
+  xlab(expression(Rate~(kg~C/m^2))) + ylab('Count') +
+  scale_fill_manual(name = "Data Source", values = c('Post & Kwon' = '#3584B0', 'GCAM Rate'='#e3962b')) + 
+  theme_light() 
 ```
 
 
-```{r Histogram_K-Post-Kwon, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Post & Kwon, and is graphed sperately due to the lack of rate data from Wei et al.", message=FALSE}
+```{r Histogram_K-Post-Kwon, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Post & Kwon.", message=FALSE}
 #Plot overlapping k histograms for the different k sources
 ggplot() +
-  geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
-  geom_histogram(aes(x = Rate_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
-  xlab('k (y^-1)') + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
-  theme_light() +
-  labs(title = 'SOC k value comparison during land use transition')
+  geom_histogram(aes(x = PostKwon_Comparison$Exp_k,fill ='Post & Kwon'), alpha = 0.5) +
+  geom_histogram(aes(x = PostKwon_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5) +
+  xlab(expression(k~(y^-1))) + ylab('Count') +
+  scale_fill_manual(name = "Data Source", values = c('Post & Kwon' = '#3584B0', 'GCAM'='#e3962b')) +
+  theme_light()
 ```
 
-A t-test was also performed on both the rates and k values. As can be seen below, the difference between means of the rate data sets was not statistically significant, but it was for the k values.  
-```{r t-test-Post-Kwon}
-t.test(Rate_Comparison$Exp_Rate, Rate_Comparison$GCAM_Rate, alternative = 'two.sided') ->Rate_T_test
-print(Rate_T_test)
-
-t.test(Rate_Comparison$Exp_k, Rate_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
-print(k_T_test)
+```{r Histogram_Wei, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Wei et al", message=FALSE}
+#Plot overlapping k histograms for the different k sources
+ggplot() +
+  geom_histogram(aes(x = Wei_Comparison$Exp_k,fill ='Post & Kwon'), alpha = 0.5) +
+  geom_histogram(aes(x = Wei_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5) +
+  xlab(expression(k~(y^-1))) + ylab('Count') +
+  scale_fill_manual(name = "Data Source", values = c('Post & Kwon' = '#3584B0', 'GCAM'='#e3962b')) +
+  theme_light()
 ```
-
-However, results changed slightly when the data from Wei et al. was also included. Post & Kwon is shown separately because it is a more complete data set, including more land use types. It also has rate data. Below are plots comparing k values to GCAM outputs with both Wei et al. and Post & Kwon data. 
 
 ```{r k-Histogram-full, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from both Post & Kwon and Wei et al.", message=FALSE}
 #Plot overlapping k histograms for the different k sources
 ggplot() +
-  geom_histogram(aes(x = Full_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5, bins = 75) +
-  geom_histogram(aes(x = Full_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5, bins = 75) +
-  xlab('k (y^-1)') + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
-  theme_light() +
-  labs(title = 'SOC k value comparison during land use transition')
+  geom_histogram(aes(x = Full_Comparison$Exp_k, fill = Full_Comparison$source), alpha = 0.5, bins = 75) +
+  geom_histogram(aes(x = Full_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5, bins = 75) +
+  xlab(expression(k~(y^-1))) + ylab('Count') +
+  scale_fill_manual(name = "Data Source", 
+                    values = c('GCAM'='#e3962b', 'Wei et al' = '#45912c', 'Post & Kwon' = '#3584B0')) +
+  theme_light() 
 ```
 
-A t-test was also performed for the aggregated data set. 
+
+Several t-tests were also performed. One was performed on each of the different k value sources (Post & Kwon, Wei et al., and the aggregated data), and another was performed on the Post & Kwon rate data.   As can be seen below, the difference between means of the rate data sets was not statistically significant, but it was for the k values.  
+```{r t-test-Post-Kwon}
+t.test(PostKwon_Comparison$Exp_Rate, PostKwon_Comparison$GCAM_Rate, alternative = 'two.sided')
+
+t.test(PostKwon_Comparison$Exp_k, PostKwon_Comparison$GCAM_k, alternative = 'two.sided')
+```
+
+```{r t-test-Wei}
+t.test(Wei_Comparison$Exp_k, Wei_Comparison$GCAM_k, alternative = 'two.sided') 
+
+```
 
 ```{r t-test-full}
 t.test(Full_Comparison$Exp_k, Full_Comparison$GCAM_k, alternative = 'two.sided')
@@ -358,7 +396,7 @@ addpoly(
 ```
 
 Results from the analysis on the aggregated data: 
-```{r meta-analysis-results-Wei}
+```{r meta-analysis-results-Full}
 Full_fixed_effect_results
 ```
 ```{r Forest_Plot-Full, echo = FALSE, fig.cap ='Forest plot detailing the meta analysis performed on the aggregated SOC Data. The data was grouped by GCAM land region (represented by GLU code).' , message = FALSE}

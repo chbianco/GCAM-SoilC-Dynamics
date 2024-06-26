@@ -80,3 +80,14 @@ ggplot(data = total_transitions_soon, aes(x = total_skqm_change, y = change)) +
   geom_bar(stat='identity') 
 
 
+#Now, we'll look at only the United States
+transitions_soon %>%
+  filter(region_id == 1) %>%
+  group_by(change) %>%
+  summarize(sum(sqkm_change)) %>%
+  rename(total_skqm_change = `sum(sqkm_change)`) %>%
+  arrange(desc(total_skqm_change)) %>%
+  ggplot(aes(x=total_skqm_change, y=change)) + 
+    geom_bar(stat = 'identity')
+    
+
