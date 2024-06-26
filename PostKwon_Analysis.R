@@ -95,6 +95,9 @@ ggplot() +
   scale_fill_manual(name = "Data Source", values = c('Post & Kwon' = '#3584B0', 'GCAM'='#e3962b')) +
   theme_light()
 
+ggsave('PostKwon_k_hist.jpeg', path = 'Graphs')
+
+
 
 #T-tests, just for funsies
 t.test(PostKwon_Comparison$Exp_Rate, PostKwon_Comparison$GCAM_Rate, alternative = 'two.sided') ->Rate_T_test

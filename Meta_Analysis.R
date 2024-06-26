@@ -144,14 +144,12 @@ PostKwon_k_fixed_effect_results <- rma(yi, vi, method = 'FE',
 forest(
   PostKwon_k_effect_sizes$yi, PostKwon_k_effect_sizes$vi,
   annotate = TRUE, showweights = TRUE,
-  header = c('Transition Type', 'Weight            SMD [95% CI]'),
+  header = c('Region', 'Weight            SMD [95% CI]'),
   slab = PostKwon_k_fixed_effect_results$slab,
   xlab = 'ln(Response Ratio)',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
-
-
 
 #Adding the summary effect size
 addpoly(

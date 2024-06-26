@@ -97,6 +97,8 @@ ggplot() +
                     values = c('GCAM'='#e3962b', 'Wei et al' = '#45912c', 'Post & Kwon' = '#3584B0')) +
   theme_light() 
 
+ggsave('Full_k_hist.jpeg', path = 'Graphs')
+
 #T_Test
 t.test(Full_Comparison$Exp_k, Full_Comparison$GCAM_k, alternative = 'two.sided') ->Full_T_test
 #According to this, there is not a significant difference in the average of the means 

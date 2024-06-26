@@ -63,6 +63,9 @@ ggplot() +
   scale_fill_manual(name = "Data Source", values = c('Wei et al' = '#45912c', 'GCAM'='#e3962b')) +
   theme_light() 
 
+ggsave('Wei_k_hist.jpeg', path = 'Graphs')
+
+
 #T test
 t.test(Wei_Comparison$Exp_k, Wei_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
 #According to this, there is a meaningful difference in the means
