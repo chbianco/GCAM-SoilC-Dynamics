@@ -104,7 +104,7 @@ PostKwon_fixed_effect_results <- rma(yi, vi, method = 'FE',
 forest(
   PostKwon_effect_sizes$yi, PostKwon_effect_sizes$vi,
   annotate = TRUE,showweights = TRUE,
-  header = c('Transition Type', 'Weight            SMD [95% CI]'),
+  header = c('Region', 'Weight            SMD [95% CI]'),
   slab = PostKwon_fixed_effect_results$slab,
   xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
@@ -146,7 +146,7 @@ forest(
   annotate = TRUE, showweights = TRUE,
   header = c('Region', 'Weight            SMD [95% CI]'),
   slab = PostKwon_k_fixed_effect_results$slab,
-  xlab = 'ln(Response Ratio)',
+  xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
@@ -185,7 +185,7 @@ Wei_fixed_effect_results <- rma(yi, vi, method = 'FE',
 forest(
   Wei_effect_sizes$yi, Wei_effect_sizes$vi,
   annotate = TRUE, showweights = TRUE,
-  header = c('Transition Type', 'Weight            SMD [95% CI]'),
+  header = c('Region', 'Weight            SMD [95% CI]'),
   slab = Wei_fixed_effect_results$slab,
   xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
@@ -227,7 +227,7 @@ Full_fixed_effect_results <- rma(yi, vi, method = 'FE',
 forest(
   Full_effect_sizes$yi, Full_effect_sizes$vi,
   annotate = TRUE,showweights = TRUE,
-  header = c('Transition Type', 'Weight            SMD [95% CI]'),
+  header = c('Region', 'Weight            SMD [95% CI]'),
   slab = Full_fixed_effect_results$slab,
   xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 

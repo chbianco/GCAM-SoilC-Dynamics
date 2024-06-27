@@ -357,7 +357,8 @@ PostKwon_k_fixed_effect_results
 #Forest plot for Post & Kwon k vals
 forest(
   PostKwon_k_effect_sizes$yi, PostKwon_k_effect_sizes$vi,
-  annotate = FALSE,
+  annotate = FALSE, showweights = TRUE, 
+  header = c('Region', 'Weight         SMD [95% CI]'),
   slab = PostKwon_k_fixed_effect_results$slab,
   xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
@@ -381,7 +382,8 @@ Wei_fixed_effect_results
 #Forest plot for Wei
 forest(
   Wei_effect_sizes$yi, Wei_effect_sizes$vi,
-  annotate = FALSE,
+  annotate = FALSE, showweights = TRUE, 
+  header = c('Region', 'Weight         SMD [95% CI]'),
   slab = Wei_fixed_effect_results$slab,
   xlab = 'ln(Response Ratio)',
   #Below sets the size of study labels, shape of bars, and size of x labels 
@@ -404,7 +406,8 @@ Full_fixed_effect_results
 #Forest plot for full dataset
 forest(
   Full_effect_sizes$yi, Full_effect_sizes$vi,
-  annotate = TRUE,
+  annotate = TRUE, showweights = TRUE, 
+  header = c('Region', 'Weight         SMD [95% CI]'), 
   slab = Full_fixed_effect_results$slab,
   xlab = 'ln(Response Ratio)',
   #Below sets the size of study labels, shape of bars, and size of x labels 
