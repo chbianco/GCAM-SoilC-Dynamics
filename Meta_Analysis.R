@@ -23,7 +23,7 @@ soilC %>%
 
 #Simplify the data to just the stuff we'll need to compare with experimental data
 soilC_regions %>%
-  select(Land_Type, soil_c, GLU_code, soilTimeScale, GCAM_region_ID) -> simple_soilC_regions
+  select(Land_Type, soil_c, GLU_code, soilTimeScale, GCAM_region_ID, Basin_long_name) -> simple_soilC_regions
 
 #Creating the Post & Kwon comparison data 
 PostKwon %>%
@@ -36,12 +36,12 @@ PostKwon %>%
   mutate(Land_Type = Final_Land_Use) %>%
   right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
   rename(final_soil_c = soil_c) %>%
-  select(-Land_Type, -soilTimeScale.x) %>%
-  rename(soilTimeScale = soilTimeScale.y) %>%
+  select(-Land_Type, -soilTimeScale.x, -Basin_long_name.x) %>%
+  rename(soilTimeScale = soilTimeScale.y, Basin_long_name = Basin_long_name.y) %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
          Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/Time, 
+         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale, 
          source = 'Post & Kwon'
   ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
@@ -58,11 +58,11 @@ Wei %>%
   mutate(Land_Type = Final_Land_Use) %>%
   right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
   rename(final_soil_c = soil_c) %>%
-  select(-Land_Type, -soilTimeScale.x) %>%
-  rename(soilTimeScale = soilTimeScale.y) %>%
+  select(-Land_Type, -soilTimeScale.x, -Basin_long_name.x) %>%
+  rename(soilTimeScale = soilTimeScale.y, Basin_long_name = Basin_long_name.y) %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/Time,
+         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale,
          Exp_k = -log(1/((abs(OC_decrease)/100) +1))/Time,
          source = 'Wei et al'
   ) %>%
@@ -82,7 +82,7 @@ Full_Comparison <- bind_rows(
 
 #First, we need to get mean, std dev, and n
 PostKwon_Comparison %>%
-  group_by(GLU_code) %>%
+  group_by(Basin_long_name) %>%
   summarize(mean_control = mean(Exp_Rate), sd_control= sd(Exp_Rate), n_control = n(),
             mean_GCAM = mean(GCAM_Rate), sd_GCAM = sd(GCAM_Rate), n_GCAM = n()
             ) -> PostKwon_MA_data
@@ -97,15 +97,16 @@ PostKwon_effect_sizes <-
 
 #We're going to use a fixed effect model for this analysis, which we set up below
 PostKwon_fixed_effect_results <- rma(yi, vi, method = 'FE',
-                                     slab = GLU_code,
+                                     slab = Basin_long_name,
                                      data = PostKwon_effect_sizes)
 
 #Forest plot for Post & Kwon
 forest(
   PostKwon_effect_sizes$yi, PostKwon_effect_sizes$vi,
-  annotate = FALSE,
+  annotate = TRUE,showweights = TRUE,
+  header = c('Region', 'Weight            SMD [95% CI]'),
   slab = PostKwon_fixed_effect_results$slab,
-  xlab = 'ln(Response Ratio)',
+  xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
@@ -117,10 +118,11 @@ addpoly(
 )
 
 
+
 #Now, we'll do one for the Post & Kwon k values
 #First, we need to get mean, std dev, and n
 PostKwon_Comparison %>%
-  group_by(GLU_code) %>%
+  group_by(Basin_long_name) %>%
   summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
             mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
   ) -> PostKwon_MA_k_data
@@ -135,15 +137,16 @@ PostKwon_k_effect_sizes <-
 
 #We're going to use a fixed effect model for this analysis, which we set up below
 PostKwon_k_fixed_effect_results <- rma(yi, vi, method = 'FE',
-                                     slab = GLU_code,
+                                     slab = Basin_long_name,
                                      data = PostKwon_k_effect_sizes)
 
 #Forest plot for Post & Kwon k vals
 forest(
   PostKwon_k_effect_sizes$yi, PostKwon_k_effect_sizes$vi,
-  annotate = FALSE,
+  annotate = TRUE, showweights = TRUE,
+  header = c('Region', 'Weight            SMD [95% CI]'),
   slab = PostKwon_k_fixed_effect_results$slab,
-  xlab = 'ln(Response Ratio)',
+  xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
@@ -160,7 +163,7 @@ addpoly(
 #Now we do the same for Wei et al.
 #First, we need to get mean, std dev, and n
 Wei_Comparison %>%
-  group_by(GLU_code) %>%
+  group_by(Basin_long_name) %>%
   summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
             mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
   ) -> Wei_MA_data
@@ -175,18 +178,21 @@ Wei_effect_sizes <-
 
 #We're going to use a fixed effect model for this analysis, which we set up below
 Wei_fixed_effect_results <- rma(yi, vi, method = 'FE',
-                                     slab = GLU_code,
+                                     slab = Basin_long_name,
                                      data = Wei_effect_sizes)
 
 #Forest plot for Wei
 forest(
   Wei_effect_sizes$yi, Wei_effect_sizes$vi,
-  annotate = FALSE,
+  annotate = TRUE, showweights = TRUE,
+  header = c('Region', 'Weight            SMD [95% CI]'),
   slab = Wei_fixed_effect_results$slab,
-  xlab = 'ln(Response Ratio)',
+  xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
+
+
 
 #Adding the summary effect size
 addpoly(
@@ -199,7 +205,7 @@ addpoly(
 #Now we do it for all the data...
 #First, we need to get mean, std dev, and n
 Full_Comparison %>%
-  group_by(GLU_code) %>%
+  group_by(Basin_long_name) %>%
   summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
             mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
   ) -> Full_MA_data
@@ -214,18 +220,20 @@ Full_effect_sizes <-
 
 #We're going to use a fixed effect model for this analysis, which we set up below
 Full_fixed_effect_results <- rma(yi, vi, method = 'FE',
-                                     slab = GLU_code,
+                                     slab = Basin_long_name,
                                      data = Full_effect_sizes)
 
 #Forest plot for full dataset
 forest(
   Full_effect_sizes$yi, Full_effect_sizes$vi,
-  annotate = TRUE,
+  annotate = TRUE,showweights = TRUE,
+  header = c('Region', 'Weight            SMD [95% CI]'),
   slab = Full_fixed_effect_results$slab,
-  xlab = 'ln(Response Ratio)',
+  xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1
 )
+
 
 #Adding the summary effect size
 addpoly(
@@ -264,12 +272,18 @@ Full_fixed_effect_results_change <- rma(yi, vi, method = 'FE',
 #Forest plot for full dataset
 forest(
   Full_effect_sizes_change$yi, Full_effect_sizes_change$vi,
-  annotate = TRUE,
+  annotate = TRUE, showweights = TRUE, 
+  header = c('Transition Type', 'Weight         SMD [95% CI]'),
   slab = Full_fixed_effect_results_change$slab,
-  xlab = 'ln(Response Ratio)',
+  xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
   cex = .8, pch = 15, cex.lab = 1 
 )
+
+#Adding column headers
+
+
+
 
 #Adding the summary effect size
 addpoly(
