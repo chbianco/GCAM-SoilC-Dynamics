@@ -67,7 +67,7 @@ ggplot(data = total_transitions, aes(x = total_skqm_change, y = change)) +
 
 
 #Now, we do this for only up until 2015 to see what is more common in the near future
-transitions_soon <- filter(transitions, year > 2015)
+transitions_soon <- filter(transitions, year < 2015)
 
 transitions_soon %>%  
   group_by(change) %>%
