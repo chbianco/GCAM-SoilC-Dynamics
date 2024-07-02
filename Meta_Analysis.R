@@ -77,6 +77,21 @@ Full_Comparison <- bind_rows(
 )
 
 
+#Now, we want to create another data frame that has all the repeated regions between the two studies
+
+Full_Comparison %>%
+  mutate(source_short = ifelse(source == 'Post & Kwon', 'PostKwon', 'Wei')) %>%
+  mutate(basin_source = paste(Basin_long_name, source_short)) %>%
+  filter((paste(Basin_long_name, 'PostKwon') %in% basin_source) & (paste(Basin_long_name, 'Wei') %in% basin_source)) -> Duplicate_Comparison
+
+counts = table(Duplicate_Comparison$basin_source)
+ 
+Duplicate_Comparison %>%
+  filter(
+    (counts[paste(Basin_long_name, 'Wei')] > 1) & (counts[paste(Basin_long_name, 'PostKwon')] > 1)
+  ) -> Duplicate_Comparison
+
+
 #EVERYTHING ABOVE THIS LITERALLY JUST LOADS DATA!!!! DON'T CHANGE IT!!!!!
 ##ow, we get into the actual meta analysis 
 
@@ -280,14 +295,49 @@ forest(
   cex = .8, pch = 15, cex.lab = 1 
 )
 
-#Adding column headers
-
-
-
-
 #Adding the summary effect size
 addpoly(
   Full_fixed_effect_results_change, 
+  col = 'orange', cex = 1, annotate = TRUE, mlab = 'Summary'
+)
+
+
+
+#Meta analysis for the shared regions
+#First, we need to get mean, std dev, and n
+Duplicate_Comparison %>%
+  group_by(basin_source) %>%
+  summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
+            mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
+  ) -> Duplicate_MA_data
+
+#Now, we can use escalc to get the standardized mean difference 
+Duplicate_effect_sizes <-
+  escalc('SMD',
+         m1i = mean_control, n1i = n_control, sd1i = sd_control,
+         m2i = mean_GCAM, n2i = n_GCAM, sd2i = sd_GCAM,
+         data = Duplicate_MA_data
+  )
+
+#We're going to use a fixed effect model for this analysis, which we set up below
+Duplicate_fixed_effect_results <- rma(yi, vi, method = 'FE',
+                                     slab = basin_source,
+                                     data = Duplicate_effect_sizes)
+
+#Forest plot for duplicates
+forest(
+  Duplicate_effect_sizes$yi, Duplicate_effect_sizes$vi,
+  annotate = TRUE,showweights = TRUE,
+  header = c('Region', 'Weight            SMD [95% CI]'),
+  slab = Duplicate_fixed_effect_results$slab,
+  xlab = 'Standardized Mean Difference',
+  #Below sets the size of study labels, shape of bars, and size of x labels 
+  cex = .8, pch = 15, cex.lab = 1
+)
+
+#Adding the summary effect size
+addpoly(
+  Duplicate_fixed_effect_results, 
   col = 'orange', cex = 1, annotate = TRUE, mlab = 'Summary'
 )
 
