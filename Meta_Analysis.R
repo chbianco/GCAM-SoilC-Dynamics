@@ -308,7 +308,8 @@ addpoly(
 Duplicate_Comparison %>%
   group_by(basin_source) %>%
   summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
-            mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
+            mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n(), 
+            source = source
   ) -> Duplicate_MA_data
 
 #Now, we can use escalc to get the standardized mean difference 
@@ -320,8 +321,9 @@ Duplicate_effect_sizes <-
   )
 
 #We're going to use a fixed effect model for this analysis, which we set up below
-Duplicate_fixed_effect_results <- rma(yi, vi, method = 'FE',
+Duplicate_fixed_effect_results <- rma.mv(yi, vi, method = 'FE',
                                      slab = basin_source,
+                                     mods = ~ source,
                                      data = Duplicate_effect_sizes)
 
 #Forest plot for duplicates
