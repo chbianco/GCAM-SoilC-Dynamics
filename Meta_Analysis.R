@@ -163,7 +163,7 @@ forest(
   slab = PostKwon_k_fixed_effect_results$slab,
   xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
-  cex = .8, pch = 15, cex.lab = 1
+  cex = 1, pch = 15, cex.lab = 1
 )
 
 #Adding the summary effect size
@@ -204,7 +204,7 @@ forest(
   slab = Wei_fixed_effect_results$slab,
   xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
-  cex = .8, pch = 15, cex.lab = 1
+  cex = 1, pch = 15, cex.lab = 1
 )
 
 
@@ -292,7 +292,7 @@ forest(
   slab = Full_fixed_effect_results_change$slab,
   xlab = 'Standardized Mean Difference',
   #Below sets the size of study labels, shape of bars, and size of x labels 
-  cex = .8, pch = 15, cex.lab = 1 
+  cex = 1, pch = 15, cex.lab = 1 
 )
 
 #Adding the summary effect size

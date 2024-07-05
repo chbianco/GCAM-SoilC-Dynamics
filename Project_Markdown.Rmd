@@ -84,12 +84,12 @@ Once the experimental data was loaded in, each observation was mapped to is corr
 This then allowed us to compute the GCAM SOC rate during land use change. This was done by simply subtracting the initial SOC value from the final value and dividing that by GCAMs soil timescale parameter. Finally, the k value (explained in depth in Wei et al.) was computed for both the experimental and GCAM data. The experimental and GCAM k values were computed using equations 1 and 2, respectively, below.
 \begin{equation}
 \tag{1}
-k_{exp} = -\frac{ln \left(\frac{C_f}{C_0}\right)}{t}
+k = -\frac{ln \left(\frac{C_f}{C_0}\right)}{t}
 \end{equation}
 
 \begin{equation}
 \tag{2}
-k_{exp} = -\frac{ln (Rate \times t + 1)}{t}
+k = -\frac{ln (Rate \times t + 1)}{t}
 \end{equation}
 
 \newline
@@ -97,7 +97,7 @@ Experimental data from Wei et al. did not contain any raw rate information. Inst
 
 \begin{equation}
 \tag{3}
-k_{exp} = -\frac{ln \left(\frac{1}{\frac{|OC Decrease|}{100} + 1}\right)}{t}
+k = -\frac{ln \left(\frac{1}{\frac{|OC Decrease|}{100} + 1}\right)}{t}
 \end{equation}
 
 The code for merging the GCAM and experimental, as well as for computing the rate and k value is below. The process was the same for the Wei et al. data. 
