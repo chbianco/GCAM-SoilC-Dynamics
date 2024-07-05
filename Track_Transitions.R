@@ -63,7 +63,12 @@ ggplot(data = total_transitions_gcam32, aes(x=total_skqm_change, y=change)) +
  
 #Plot in total
 ggplot(data = total_transitions, aes(x = total_skqm_change, y = change)) + 
-  geom_bar(stat='identity') 
+  geom_bar(stat='identity') + 
+  xlab(expression(Total~area~transitioned~(km^2))) + ylab('Transition Type') +
+  theme_light() 
+
+ggsave('total_transitions_bar.jpeg', path = 'Graphs')
+
 
 
 #Now, we do this for only up until 2015 to see what is more common in the near future
