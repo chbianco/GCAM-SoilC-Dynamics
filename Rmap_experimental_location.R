@@ -4,6 +4,8 @@
 library(dplyr)
 library(ggplot2)
 library(rmap)
+library(RColorBrewer)
+library(graphics)
 
 #Load GCAM data
 soilC <- read.csv(file = 'Data/GCAM_soilC.csv')
@@ -87,10 +89,38 @@ Full_Comparison %>%
   select(GLU_code, Basin_long_name, GCAM_region_ID, source) %>%
   count(Basin_long_name)-> location_freq
 
-location_freq_data = data.frame(subRegion = location_freq$Basin_long_name, value = location_freq$n)
 
+data.frame(subRegion = location_freq$Basin_long_name, value = location_freq$n) %>%
+  mutate(value = value * -1) -> location_freq_data  
+
+
+
+#Making the map look pretty 
+# Build your palette
+getcol = colorRampPalette(brewer.pal(6, 'Oranges'));
+reds = getcol(6)[1:5];
+my_pal <- rev(c(rev(reds),"white"))
+pie(rep(1,length(my_pal)),label=names(my_pal),col=my_pal)
+
+# Create a list of ranges and categorical color scales for each parameter
+numeric2Cat_param <- list("param")
+numeric2Cat_breaks <- list(c(-0, -0.0000000000001, -1 , -4, -10, -20, -30))
+numeric2Cat_labels <- list(c("0", '1', "1 to 4", "4 to 10", "10 to 20", "20 to 30"))
+names(my_pal) <- unlist(numeric2Cat_labels)
+pie(rep(1,length(my_pal)),label=names(my_pal),col=my_pal)
+numeric2Cat_palette <- list(my_pal) # Can be a custom scale or an R brewer palette or an rmap palette
+numeric2Cat_legendTextSize <- list(c(1))
+numeric2Cat_list <-list(numeric2Cat_param = numeric2Cat_param,
+                        numeric2Cat_breaks = numeric2Cat_breaks,
+                        numeric2Cat_labels = numeric2Cat_labels,
+                        numeric2Cat_palette = numeric2Cat_palette,
+                        numeric2Cat_legendTextSize = numeric2Cat_legendTextSize); numeric2Cat_list
+
+#Creating the map
 rmap::map(location_freq_data, 
-          overLayer = mapGCAMBasins
+          overLayer = mapGCAMBasins,
+          width = 50, height = 16,
+          numeric2Cat_list = numeric2Cat_list,
           )
 
 
