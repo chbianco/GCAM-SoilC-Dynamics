@@ -33,12 +33,13 @@ filtered_transitions %>%
   mutate(from = from_Land_Use) %>%
   mutate(change = paste(to, from, sep = '')) -> transitions
 
-#Sum total land use transitions
+#Sum total land use transitions and filter for ones that are meaningfully high 
 transitions %>%
   group_by(change) %>%
   summarize(sum(sqkm_change)) %>%
   rename(total_skqm_change = `sum(sqkm_change)`) %>%
-  arrange(desc(total_skqm_change))-> total_transitions
+  arrange(desc(total_skqm_change)) %>%
+  filter(total_skqm_change > 100000)-> total_transitions
 
 #Sort and sum land use transition by GCAM32 region
 transitions %>%
