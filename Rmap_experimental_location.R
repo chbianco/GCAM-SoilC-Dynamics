@@ -99,13 +99,13 @@ data.frame(subRegion = location_freq$Basin_long_name, value = location_freq$n) %
 # Build your palette
 getcol = colorRampPalette(brewer.pal(6, 'Oranges'));
 reds = getcol(6)[1:5];
-my_pal <- rev(c(rev(reds),"white"))
+my_pal <- rev(c(rev(reds)))
 pie(rep(1,length(my_pal)),label=names(my_pal),col=my_pal)
 
 # Create a list of ranges and categorical color scales for each parameter
 numeric2Cat_param <- list("param")
-numeric2Cat_breaks <- list(c(-0, -0.0000000000001, -1 , -4, -10, -20, -30))
-numeric2Cat_labels <- list(c("0", '1', "1 to 4", "4 to 10", "10 to 20", "20 to 30"))
+numeric2Cat_breaks <- list(c( 0, -1, -4, -10, -20, -30))
+numeric2Cat_labels <- list(c("20 to 30", "10 to 20", "4 to 10", "1 to 4", '1'))
 names(my_pal) <- unlist(numeric2Cat_labels)
 pie(rep(1,length(my_pal)),label=names(my_pal),col=my_pal)
 numeric2Cat_palette <- list(my_pal) # Can be a custom scale or an R brewer palette or an rmap palette
@@ -118,9 +118,8 @@ numeric2Cat_list <-list(numeric2Cat_param = numeric2Cat_param,
 
 #Creating the map
 rmap::map(location_freq_data, 
-          overLayer = mapGCAMBasins,
-          width = 50, height = 16,
           numeric2Cat_list = numeric2Cat_list,
+          underLayer = mapCountries
           )
 
 
