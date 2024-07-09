@@ -39,7 +39,7 @@ transitions %>%
   summarize(sum(sqkm_change)) %>%
   rename(total_skqm_change = `sum(sqkm_change)`) %>%
   arrange(desc(total_skqm_change)) %>%
-  filter(total_skqm_change > 100000)-> total_transitions
+  filter(total_skqm_change > 500000)-> total_transitions
 
 #Sort and sum land use transition by GCAM32 region
 transitions %>%
