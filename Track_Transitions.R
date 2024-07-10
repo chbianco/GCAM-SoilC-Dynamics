@@ -18,7 +18,7 @@ simple_land <- function(land){
   else if(grepl('pasture', land)){return('Pasture')}
   else if(grepl('urban', land)){return('Urbanland')}
   else if(grepl('irrigated', land) | grepl('rainfed', land)){return('Cropland')}
-  else if(grepl('otherarableland', land) ){return('Cropland')}
+  else if(grepl('otherarableland', land) ){return('OtherArableLand')}
   else{return(NA)}
   
 }
@@ -31,7 +31,7 @@ sapply(filtered_transitions$from, simple_land) -> from_Land_Use
 filtered_transitions %>%
   mutate(to = to_Land_Use) %>%
   mutate(from = from_Land_Use) %>%
-  mutate(change = paste(to, from, sep = '')) -> transitions
+  mutate(change = paste(from, to, sep = ' to ')) -> transitions
 
 #Sum total land use transitions and filter for ones that are meaningfully high 
 transitions %>%
@@ -72,18 +72,45 @@ ggsave('total_transitions_bar.jpeg', path = 'Graphs')
 
 
 
-#Now, we do this for only up until 2015 to see what is more common in the near future
-transitions_soon <- filter(transitions, year > 2015)
+#Now, we do this for only after to see what is more common in the future
+transitions_soon <- filter(transitions, year > 2015) 
 
 transitions_soon %>%  
   group_by(change) %>%
   summarize(sum(sqkm_change)) %>%
   rename(total_skqm_change = `sum(sqkm_change)`) %>%
-  arrange(desc(total_skqm_change))-> total_transitions_soon
+  arrange(desc(total_skqm_change)) %>%
+  filter(total_skqm_change > 10000)-> total_transitions_soon
 
-#Plot in total for only transitions in the next 10ish years
+#Plot in total for only transitions after 2015
 ggplot(data = total_transitions_soon, aes(x = total_skqm_change, y = change)) + 
-  geom_bar(stat='identity') 
+  geom_bar(stat='identity') + 
+  xlab(expression(Total~area~transitioned~(km^2))) + ylab('Transition Type') +
+  theme_light() 
+
+ggsave('post_2015_transitions_bar.jpeg', path = 'Graphs')
+
+
+
+
+#Now, we do this for only BEFORE  2015 to see what is more common in the past
+transitions_soon <- filter(transitions, year < 2015) 
+
+transitions_soon %>%  
+  group_by(change) %>%
+  summarize(sum(sqkm_change)) %>%
+  rename(total_skqm_change = `sum(sqkm_change)`) %>%
+  arrange(desc(total_skqm_change)) %>%
+  filter(total_skqm_change > 500000)-> total_transitions_soon
+
+#Plot in total for only transitions in the past
+ggplot(data = total_transitions_soon, aes(x = total_skqm_change, y = change)) + 
+  geom_bar(stat='identity') + 
+  xlab(expression(Total~area~transitioned~(km^2))) + ylab('Transition Type') +
+  theme_light() 
+
+ggsave('pre_2015_transitions_bar.jpeg', path = 'Graphs')
+
 
 
 #Now, we'll look at only the United States
