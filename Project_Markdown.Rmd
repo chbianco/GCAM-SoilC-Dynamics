@@ -122,6 +122,7 @@ PostKwon %>%
          source = 'Post & Kwon'
   ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
+  #This did not have to be done for the GCAM_k because the argument inside the natural log will always be positive--it is a positive value divided by another positive value--so sign correction was not necesary. 
   mutate(Exp_k = ifelse(sign(Exp_k) == sign(Exp_Rate), Exp_k*(-1), Exp_k)) -> PostKwon_Comparison
 ```
 
