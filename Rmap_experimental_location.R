@@ -143,8 +143,9 @@ numeric2Cat_list <-list(numeric2Cat_param = numeric2Cat_param,
 
 #Creating the map
 rmap::map(location_freq_data, 
-          underLayer= mapGCAMBasins,
-          numeric2Cat_list = numeric2Cat_list
+          overLayer= mapGCAMBasins,
+          numeric2Cat_list = numeric2Cat_list,
+          crop = FALSE
           )
 
 
