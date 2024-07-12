@@ -82,7 +82,7 @@ Full_Comparison <- bind_rows(
 )
 
 #EVERTHING ABOVE THIS JUST LOADS DATA!!!! DO NOT CHANGE!!!!
-
+mapGCAMBasins -> mapGCAMBasins
 
 #Creating the dataframe we will load into rmap
 Full_Comparison %>%
@@ -93,12 +93,14 @@ Full_Comparison %>%
 data.frame(subRegion = location_freq$Basin_long_name, value = location_freq$n) %>%
   mutate(value = value * -1) -> location_freq_data  
 
+location_freq_data %>% mutate(value = value * -1) -> location_freq_data 
+
 #Now, we need to rename some basins...
 new_basins <- function(land){
   if(grepl('Arkansas_White_Red_Basin', land)){return('Arkansas_White_Red')}
   else if(grepl('Brahmani', land)){return('Brahamani')}
   else if(grepl('Great_Lakes_Basin', land)){return('Great_Lakes')}
-  else if(grepl('Hong_(Red_River)', land)){return('Hong_Red_River')}
+  else if(grepl('Hong_\\(Red_River\\)', land)){return('Hong_Red_River')}
   else if(grepl('Lower_Colorado_River_Basin',land)){return('Lower_Colorado_River')}
   else if(grepl('Mahanadi', land)){return('Mahandi')}
   else if(grepl('Missouri_River_Basin', land)){return('Missouri_River')}
@@ -119,14 +121,14 @@ location_freq_data %>%
 #Making the map look pretty 
 # Build your palette
 getcol = colorRampPalette(brewer.pal(6, 'Oranges'));
-reds = getcol(6)[1:5];
-my_pal <- rev(c(rev(reds)))
+reds = getcol(5)[1:5];
+my_pal <- c((reds))
 pie(rep(1,length(my_pal)),label=names(my_pal),col=my_pal)
 
 # Create a list of ranges and categorical color scales for each parameter
 numeric2Cat_param <- list("param")
-numeric2Cat_breaks <- list(c(-0, -1, -4, -10, -20, -30))
-numeric2Cat_labels <- list(c('1',"1 to 4", "4 to 10", "10 to 20", "20 to 30"))
+numeric2Cat_breaks <- (list(c(0, 1, 4, 10, 20, 30)))
+numeric2Cat_labels <- (list(c('1',"1 to 4", "4 to 10", "10 to 20", "20 to 30")))
 names(my_pal) <- unlist(numeric2Cat_labels)
 pie(rep(1,length(my_pal)),label=names(my_pal),col=my_pal)
 numeric2Cat_palette <- list(my_pal) # Can be a custom scale or an R brewer palette or an rmap palette
