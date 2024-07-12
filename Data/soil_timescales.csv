@@ -1,0 +1,33 @@
+GCAM_region_ID,region,soilTimeScale,Continent
+1,USA,50,North_America
+2,Africa_Eastern,25,Africa
+3,Africa_Northern,25,Africa
+4,Africa_Southern,25,Africa
+5,Africa_Western,25,Africa
+6,Australia_NZ,50,Australia
+7,Brazil,25,South_America
+8,Canada,75,North_America
+9,Central America and Caribbean,25,South_America
+10,Central Asia,75,Asia
+11,China,50,Asia
+12,EU-12,50,Europe
+13,EU-15,50,Europe
+14,Europe_Eastern,50,Europe
+15,Europe_Non_EU,50,Europe
+16,European Free Trade Association,50,Europe
+17,India,25,Asia
+18,Indonesia,25,Asia
+19,Japan,50,Asia
+20,Mexico,25,North_America
+21,Middle East,50,Asia
+22,Pakistan,25,Asia
+23,Russia,200,Asia
+24,South Africa,50,Africa
+25,South America_Northern,25,South_America
+26,South America_Southern,25,South_America
+27,South Asia,25,Asia
+28,South Korea,50,Asia
+29,Southeast Asia,25,Asia
+30,Taiwan,50,Asia
+31,Argentina,50,South_America
+32,Colombia,25,South_America
