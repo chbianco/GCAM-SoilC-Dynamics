@@ -78,12 +78,24 @@ Full_Comparison <- bind_rows(
 )
 
 #EVERYTHING ABOVE THIS LITERALLY JUST LOADS DATA!!!! DON'T CHANGE IT!!!!!
+#Make a quick function to make our new Type column
+three_types <- function(source){
+  if(grepl('GCAM', source)){return('GCAM')}
+  else if(grepl('Post & Kwon', source)){return('Post & Kwon')}
+  else if(grepl('Wei et al', source)){return('Wei et al')}
+}
 
 #Make data longer
 Full_Comparison %>%
   pivot_longer(cols = Exp_k:GCAM_k,
                names_to = "Type",
-               values_to = "k") -> full_long_data
+               values_to = "k") %>%
+  mutate(Type = paste(source, Type, sep = '')) -> full_long_data
+
+sapply(full_long_data$Type, three_types) -> full_long_data_vec
+
+full_long_data %>% 
+  mutate(Type = full_long_data_vec) -> full_long_data
 
 Wei_Comparison %>%
   pivot_longer(cols = Exp_k:GCAM_k,
@@ -97,10 +109,11 @@ PostKwon_Comparison %>%
 
 
 #Full ANOVA
-aov_Full <- aov(k ~ Type + Basin_long_name,
+aov_Full <- aov(k ~ Type ,
                       data = full_long_data)
 summary(aov_Full)
 TukeyHSD(aov_Full)
+AIC(aov_Full)
 
 
 #PostKwon ANOVA
@@ -129,6 +142,8 @@ change_long_data %>%
 aov_change <- aov(mean_k ~ Type + change,
                data = change_grouped_long)
 summary(aov_change)
+TukeyHSD(aov_change)
+AIC(aov_change)
 
 
 #Average by region
@@ -138,7 +153,8 @@ change_long_data %>%
 
 aov_basin <- aov(mean_k ~ Type + Basin_long_name,
                   data = basin_grouped_long)
-summary(aov_change)
+summary(aov_basin)
+AIC(aov_basin)
 
 #Averages by region per paper
 #Post & Kwon
@@ -160,6 +176,14 @@ change_long_data %>%
 aov_basin_wei <- aov(mean_k ~ Type + Basin_long_name,
                           data = Wei_basin_grouped_long)
 summary(aov_basin_postkwon)
+
+
+#Big ANOVA
+aov_big <- aov(k ~ Type + Basin_long_name + change,
+                          data = change_long_data)
+summary(aov_big)
+TukeyHSD(aov_big)
+AIC(aov_big)
 
 
 
