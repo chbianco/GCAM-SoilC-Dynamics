@@ -140,4 +140,27 @@ aov_basin <- aov(mean_k ~ Type + Basin_long_name,
                   data = basin_grouped_long)
 summary(aov_change)
 
+#Averages by region per paper
+#Post & Kwon
+change_long_data %>%
+  filter(source == 'Post & Kwon') %>%
+  group_by(Type, Basin_long_name) %>%
+  summarize(mean_k = mean(k), std_dev_k = sd(k)) -> PostKwon_basin_grouped_long
+
+aov_basin_postkwon <- aov(mean_k ~ Type + Basin_long_name,
+                 data = PostKwon_basin_grouped_long)
+summary(aov_basin_postkwon)
+
+#Wei et al
+change_long_data %>%
+  filter(source == 'Wei et al') %>%
+  group_by(Type, Basin_long_name) %>%
+  summarize(mean_k = mean(k), std_dev_k = sd(k)) -> Wei_basin_grouped_long
+
+aov_basin_wei <- aov(mean_k ~ Type + Basin_long_name,
+                          data = Wei_basin_grouped_long)
+summary(aov_basin_postkwon)
+
+
+
   
