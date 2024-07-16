@@ -102,6 +102,7 @@ aov_Full <- aov(k ~ Type + Basin_long_name,
 summary(aov_Full)
 TukeyHSD(aov_Full)
 
+
 #PostKwon ANOVA
 aov_PostKwon <- aov(k ~ Type + Basin_long_name,
                      data = PostKwon_long_data)
@@ -114,4 +115,29 @@ aov_Wei <- aov(k ~ Type + Basin_long_name,
                     data = Wei_long_data)
 summary(aov_Wei)
 TukeyHSD(aov_Wei)
+
+#First, let's add transition type
+full_long_data %>% 
+  mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = '')) -> change_long_data
+
+#Now, we'll do some averages
+#Average by change
+change_long_data %>%
+  group_by(Type, change) %>%
+  summarize(mean_k = mean(k), std_dev_k = sd(k)) -> change_grouped_long
+
+aov_change <- aov(mean_k ~ Type + change,
+               data = change_grouped_long)
+summary(aov_change)
+
+
+#Average by region
+change_long_data %>%
+  group_by(Type, Basin_long_name) %>%
+  summarize(mean_k = mean(k), std_dev_k = sd(k)) -> basin_grouped_long
+
+aov_basin <- aov(mean_k ~ Type + Basin_long_name,
+                  data = basin_grouped_long)
+summary(aov_change)
+
   
