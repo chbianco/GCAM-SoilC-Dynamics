@@ -85,56 +85,68 @@ three_types <- function(source){
   else if(grepl('Wei et al', source)){return('Wei et al')}
 }
 
-#Make data longer
+#IF YOU WANT TWO TYPES, USE THIS
+Full_Comparison %>%
+  pivot_longer(cols = Exp_k:GCAM_k,
+               names_to = "Type",
+               values_to = "k") -> full_long_data 
+
+
+
+#IF YOU WANT THREE TYPES, USE THIS
 Full_Comparison %>%
   pivot_longer(cols = Exp_k:GCAM_k,
                names_to = "Type",
                values_to = "k") %>%
-  mutate(Type = paste(source, Type, sep = '')) -> full_long_data
+mutate(Type = paste(source, Type, sep = '')) -> full_long_data
 
 sapply(full_long_data$Type, three_types) -> full_long_data_vec
 
 full_long_data %>% 
   mutate(Type = full_long_data_vec) -> full_long_data
 
-Wei_Comparison %>%
-  pivot_longer(cols = Exp_k:GCAM_k,
-                            names_to = "Type",
-                            values_to = "k") -> Wei_long_data
 
-PostKwon_Comparison %>%
-  pivot_longer(cols = Exp_k:GCAM_k,
-               names_to = "Type",
-               values_to = "k") -> PostKwon_long_data
+#Let's add transition type
+full_long_data %>% 
+  mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = '')) -> change_long_data
 
 
-#Full ANOVA
-aov_Full <- aov(k ~ Type ,
+
+
+
+#Type + Basin (no average)
+aov_Full <- aov(k ~ Type + Basin_long_name ,
                       data = full_long_data)
 summary(aov_Full)
 TukeyHSD(aov_Full)
 AIC(aov_Full)
 
 
-#PostKwon ANOVA
-aov_PostKwon <- aov(k ~ Type + Basin_long_name,
-                     data = PostKwon_long_data)
-summary(aov_PostKwon)
-TukeyHSD(aov_PostKwon)
+#Type + Change (no average)
+aov_Full_change <- aov(k ~ Type + change,
+                data = change_long_data)
+summary(aov_Full_change)
+TukeyHSD(aov_Full_change)
+AIC(aov_Full_change)
+
+#Type * Change (no average)
+aov_Full_change_times <- aov(k ~ Type * change,
+                       data = change_long_data)
+summary(aov_Full_change_times)
+TukeyHSD(aov_Full_change_times)
+AIC(aov_Full_change_times)
+
+#Type + Basin + change
+aov_big <- aov(k ~ Type + Basin_long_name + change,
+               data = change_long_data)
+summary(aov_big)
+TukeyHSD(aov_big)
+AIC(aov_big)
 
 
-#Wei ANOVA
-aov_Wei <- aov(k ~ Type + Basin_long_name,
-                    data = Wei_long_data)
-summary(aov_Wei)
-TukeyHSD(aov_Wei)
-
-#First, let's add transition type
-full_long_data %>% 
-  mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = '')) -> change_long_data
 
 #Now, we'll do some averages
-#Average by change
+#Type + change (averaged by change)
 change_long_data %>%
   group_by(Type, change) %>%
   summarize(mean_k = mean(k), std_dev_k = sd(k)) -> change_grouped_long
@@ -146,6 +158,7 @@ TukeyHSD(aov_change)
 AIC(aov_change)
 
 
+#Type + Basin (averaged by basin)
 #Average by region
 change_long_data %>%
   group_by(Type, Basin_long_name) %>%
@@ -156,6 +169,36 @@ aov_basin <- aov(mean_k ~ Type + Basin_long_name,
 summary(aov_basin)
 AIC(aov_basin)
 
+
+
+
+
+
+
+#Probably don't need these
+Wei_Comparison %>%
+  pivot_longer(cols = Exp_k:GCAM_k,
+               names_to = "Type",
+               values_to = "k") -> Wei_long_data
+
+PostKwon_Comparison %>%
+  pivot_longer(cols = Exp_k:GCAM_k,
+               names_to = "Type",
+               values_to = "k") -> PostKwon_long_data
+
+#PostKwon ANOVA
+aov_PostKwon <- aov(k ~ Type + Basin_long_name,
+                    data = PostKwon_long_data)
+summary(aov_PostKwon)
+TukeyHSD(aov_PostKwon)
+
+
+#Wei ANOVA
+aov_Wei <- aov(k ~ Type + Basin_long_name,
+               data = Wei_long_data)
+summary(aov_Wei)
+TukeyHSD(aov_Wei)
+
 #Averages by region per paper
 #Post & Kwon
 change_long_data %>%
@@ -164,7 +207,7 @@ change_long_data %>%
   summarize(mean_k = mean(k), std_dev_k = sd(k)) -> PostKwon_basin_grouped_long
 
 aov_basin_postkwon <- aov(mean_k ~ Type + Basin_long_name,
-                 data = PostKwon_basin_grouped_long)
+                          data = PostKwon_basin_grouped_long)
 summary(aov_basin_postkwon)
 
 #Wei et al
@@ -174,16 +217,8 @@ change_long_data %>%
   summarize(mean_k = mean(k), std_dev_k = sd(k)) -> Wei_basin_grouped_long
 
 aov_basin_wei <- aov(mean_k ~ Type + Basin_long_name,
-                          data = Wei_basin_grouped_long)
+                     data = Wei_basin_grouped_long)
 summary(aov_basin_postkwon)
-
-
-#Big ANOVA
-aov_big <- aov(k ~ Type + Basin_long_name + change,
-                          data = change_long_data)
-summary(aov_big)
-TukeyHSD(aov_big)
-AIC(aov_big)
 
 
 
