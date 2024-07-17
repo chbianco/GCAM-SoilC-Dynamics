@@ -33,7 +33,7 @@ PostKwon %>%
   mutate(Land_Type = Initial_Land_Use) %>%
   right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
   rename(initial_soil_c = soil_c) %>%
-  select(-Land_Type) %>%
+  select(-Land_Type) %>% 
   mutate(Land_Type = Final_Land_Use) %>%
   right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
   rename(final_soil_c = soil_c) %>%
@@ -94,16 +94,16 @@ Full_Comparison %>%
 
 
 #IF YOU WANT THREE TYPES, USE THIS
-Full_Comparison %>%
-  pivot_longer(cols = Exp_k:GCAM_k,
-               names_to = "Type",
-               values_to = "k") %>%
-mutate(Type = paste(source, Type, sep = '')) -> full_long_data
-
-sapply(full_long_data$Type, three_types) -> full_long_data_vec
-
-full_long_data %>% 
-  mutate(Type = full_long_data_vec) -> full_long_data
+# Full_Comparison %>%
+#   pivot_longer(cols = Exp_k:GCAM_k,
+#                names_to = "Type",
+#                values_to = "k") %>%
+# mutate(Type = paste(source, Type, sep = '')) -> full_long_data
+# 
+# sapply(full_long_data$Type, three_types) -> full_long_data_vec
+# 
+# full_long_data %>% 
+#   mutate(Type = full_long_data_vec) -> full_long_data
 
 
 #Let's add transition type
@@ -111,8 +111,7 @@ full_long_data %>%
   mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = '')) -> change_long_data
 
 
-
-
+#ALL ANOVAS
 
 #Type + Basin (no average)
 aov_Full <- aov(k ~ Type + Basin_long_name ,
@@ -124,7 +123,7 @@ AIC(aov_Full)
 
 #Type + Change (no average)
 aov_Full_change <- aov(k ~ Type + change,
-                data = change_long_data)
+                      data = change_long_data)
 summary(aov_Full_change)
 TukeyHSD(aov_Full_change)
 AIC(aov_Full_change)
