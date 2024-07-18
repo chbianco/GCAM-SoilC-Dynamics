@@ -169,6 +169,17 @@ summary(aov_basin)
 AIC(aov_basin)
 
 
+#Make the mean graph
+Full_Comparison %>%
+  mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = ' to ')) %>%
+  mutate(difference = Exp_k - GCAM_k) %>%
+  group_by(change) %>%
+  summarise(Mean_k = mean(difference), std_dev = sd(difference), n = n()) -> mean_difference
+
+ggplot(mean_difference, aes(x = Mean_k, y = change)) +
+  geom_point(aes(size = n)) +
+  geom_errorbar(aes(xmin=Mean_k - std_dev, xmax=Mean_k + std_dev), width=.2,
+                position=position_dodge(0.05))
 
 
 
