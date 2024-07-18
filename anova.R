@@ -174,14 +174,18 @@ Full_Comparison %>%
   mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = ' to ')) %>%
   mutate(difference = Exp_k - GCAM_k) %>%
   group_by(change) %>%
-  summarise(Mean_k = mean(difference), std_dev = sd(difference), n = n()) -> mean_difference
+  summarise(Mean_k = mean(difference), std_dev = sd(difference), Sample_Size = n()) -> mean_difference
 
 ggplot(mean_difference, aes(x = Mean_k, y = change)) +
-  geom_point(aes(size = n)) +
+  geom_point(aes(size = Sample_Size), shape = 15) +
+  labs(x = 'k', y = 'Transition Type') +
   geom_errorbar(aes(xmin=Mean_k - std_dev, xmax=Mean_k + std_dev), width=.2,
-                position=position_dodge(0.05))
+                position=position_dodge(0.05)) +
+  xlim(-0.1, 0.1) +
+  geom_vline(xintercept = 0, linetype = 'dashed', color = 'blue') +
+  theme_light() 
 
-
+ggsave('Fake_forest.jpeg', path = 'Graphs')
 
 
 
