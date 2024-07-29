@@ -78,12 +78,7 @@ Full_Comparison <- bind_rows(
 )
 
 #EVERYTHING ABOVE THIS LITERALLY JUST LOADS DATA!!!! DON'T CHANGE IT!!!!!
-#Make a quick function to make our new Type column
-three_types <- function(source){
-  if(grepl('GCAM', source)){return('GCAM')}
-  else if(grepl('Post & Kwon', source)){return('Post & Kwon')}
-  else if(grepl('Wei et al', source)){return('Wei et al')}
-}
+
 
 #IF YOU WANT TWO TYPES, USE THIS
 Full_Comparison %>%
@@ -91,28 +86,12 @@ Full_Comparison %>%
                names_to = "Type",
                values_to = "k") -> full_long_data 
 
-
-
-#IF YOU WANT THREE TYPES, USE THIS
-# Full_Comparison %>%
-#   pivot_longer(cols = Exp_k:GCAM_k,
-#                names_to = "Type",
-#                values_to = "k") %>%
-# mutate(Type = paste(source, Type, sep = '')) -> full_long_data
-# 
-# sapply(full_long_data$Type, three_types) -> full_long_data_vec
-# 
-# full_long_data %>% 
-#   mutate(Type = full_long_data_vec) -> full_long_data
-
-
 #Let's add transition type
 full_long_data %>% 
   mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = '')) -> change_long_data
 
 
 #ALL ANOVAS
-
 #Type + Basin (no average)
 aov_Full <- aov(k ~ Type + Basin_long_name ,
                       data = full_long_data)

@@ -88,7 +88,7 @@ ggplot(data = Full_Comparison, aes(x = Exp_k, y = GCAM_k)) +
   labs(title = 'SOC k comparison during land use transition', color =  'Initial Land Use', shape = 'Final Land Use')
 
 
-#Plot overlapping k histograms for the different k sourceshttp://127.0.0.1:13699/graphics/a06688ed-2179-4e5b-b3fc-f8b3426c21d5.png
+#Plot overlapping k histograms for the different k sources
 ggplot() +
   geom_histogram(aes(x = Full_Comparison$Exp_k, fill = Full_Comparison$source), alpha = 0.5, bins = 75) +
   geom_histogram(aes(x = Full_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5, bins = 75) +
