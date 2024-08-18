@@ -90,6 +90,10 @@ Full_Comparison %>%
 full_long_data %>% 
   mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = '')) -> change_long_data
 
+#Now, we have to check if the variances are equal
+vars = var.test(k ~ Type, data = change_long_data)
+
+
 
 #ALL ANOVAS
 #Type + Basin (no average)
@@ -107,13 +111,6 @@ summary(aov_Full_change)
 TukeyHSD(aov_Full_change)
 AIC(aov_Full_change)
 
-#Type * Change (no average)
-aov_Full_change_times <- aov(k ~ Type * change,
-                       data = change_long_data)
-summary(aov_Full_change_times)
-TukeyHSD(aov_Full_change_times)
-AIC(aov_Full_change_times)
-
 #Type + Basin + change
 aov_big <- aov(k ~ Type + Basin_long_name + change,
                data = change_long_data)
@@ -121,6 +118,26 @@ summary(aov_big)
 TukeyHSD(aov_big)
 AIC(aov_big)
 
+#Type * Change (no average)
+aov_Full_type_by_change <- aov(k ~ Type * change,
+                       data = change_long_data)
+summary(aov_Full_type_by_change)
+TukeyHSD(aov_Full_type_by_change)
+AIC(aov_Full_type_by_change)
+
+#Type * Basin (no average)
+aov_Full_type_by_basin <- aov(k ~ Type * Basin_long_name,
+                               data = change_long_data)
+summary(aov_Full_type_by_basin)
+TukeyHSD(aov_Full_type_by_basin)
+AIC(aov_Full_type_by_basin)
+
+#Type * Basin * Change (no average)
+aov_Full_type_by_basin_by_change <- aov(k ~ Type * Basin_long_name * change,
+                              data = change_long_data)
+summary(aov_Full_type_by_basin_by_change)
+TukeyHSD(aov_Full_type_by_basin_by_change)
+AIC(aov_Full_type_by_basin_by_change)
 
 
 #Now, we'll do some averages
@@ -157,7 +174,7 @@ Full_Comparison %>%
 
 ggplot(mean_difference, aes(x = Mean_k, y = change)) +
   geom_point(aes(size = Sample_Size), shape = 15) +
-  labs(x = 'k', y = 'Transition Type') +
+  labs(x = 'Difference in Mean k Value', y = 'Transition Type') +
   geom_errorbar(aes(xmin=Mean_k - std_dev, xmax=Mean_k + std_dev), width=.2,
                 position=position_dodge(0.05)) +
   xlim(-0.1, 0.1) +
