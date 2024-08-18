@@ -12,6 +12,7 @@ all_transitions %>%
 simple_land <- function(land){
   if(grepl('forest', land)){return('Forest')}
   else if(grepl('grassland', land)){return('Grassland')}
+  else if(grepl('biomass', land)){return('Biomass')}
   else if(grepl('rockicedesert', land)){return('RockIceDesert')}
   else if(grepl('shrub', land)){return('Shrubland')}
   else if(grepl('tundra',land)){return('Tundra')}
