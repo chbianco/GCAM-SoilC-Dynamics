@@ -136,8 +136,12 @@ AIC(aov_Full_type_by_basin)
 aov_Full_type_by_basin_by_change <- aov(k ~ Type * Basin_long_name * change,
                               data = change_long_data)
 summary(aov_Full_type_by_basin_by_change)
-TukeyHSD(aov_Full_type_by_basin_by_change)
 AIC(aov_Full_type_by_basin_by_change)
+
+TukeyHSD(aov_Full_type_by_basin_by_change, which = 'Type:Basin_long_name')
+TukeyHSD(aov_Full_type_by_basin_by_change, which = 'Type:Basin_long_name')
+TukeyHSD(aov_Full_type_by_basin_by_change, which = 'Type:Basin_long_name')
+
 
 
 #Now, we'll do some averages
