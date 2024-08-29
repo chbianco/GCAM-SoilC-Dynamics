@@ -138,9 +138,24 @@ aov_Full_type_by_basin_by_change <- aov(k ~ Type * Basin_long_name * change,
 summary(aov_Full_type_by_basin_by_change)
 AIC(aov_Full_type_by_basin_by_change)
 
-TukeyHSD(aov_Full_type_by_basin_by_change, which = 'Type:Basin_long_name')
-TukeyHSD(aov_Full_type_by_basin_by_change, which = 'Type:Basin_long_name')
-TukeyHSD(aov_Full_type_by_basin_by_change, which = 'Type:Basin_long_name')
+#This is the AOV with the lowest AIC, so we'll be using it. We want to look at the Tukey results 
+type_basin_ty <- TukeyHSD(aov_Full_type_by_basin_by_change, which = 'Type:Basin_long_name')
+type_change_ty <- TukeyHSD(aov_Full_type_by_basin_by_change, which = 'Type:change')
+basin_change_ty <- TukeyHSD(aov_Full_type_by_basin_by_change, which = 'Basin_long_name:change')
+
+#Convert the Tukey outputs 
+as.data.frame(type_basin_ty[1]) %>% 
+  arrange(Type.Basin_long_name.p.adj) %>%
+  filter(Type.Basin_long_name.p.adj < .01) -> sorted_ty_type_basin
+
+as.data.frame(type_change_ty[1]) %>% 
+  arrange(Type.change.p.adj) %>%
+  filter(Type.change.p.adj < .01) -> sorted_ty_type_change
+
+as.data.frame(basin_change_ty[1]) %>% 
+  arrange(Basin_long_name.change.p.adj) %>%
+  filter(Basin_long_name.change.p.adj < .01) -> sorted_ty_basin_change
+
 
 
 
