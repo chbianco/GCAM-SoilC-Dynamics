@@ -1,5 +1,4 @@
 library(tidyr)
-library(metafor)
 library(dplyr)
 library(ggplot2)
 
@@ -120,7 +119,6 @@ aov_big <- aov(k ~ Type + Basin_long_name + change,
 summary(aov_big)
 TukeyHSD(aov_big)
 AIC(aov_big)
-
 
 
 #Now, we'll do some averages
