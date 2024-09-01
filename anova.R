@@ -1,5 +1,4 @@
 library(tidyr)
-library(metafor)
 library(dplyr)
 library(ggplot2)
 
