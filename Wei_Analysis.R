@@ -60,10 +60,12 @@ ggplot() +
   geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
   geom_histogram(aes(x = Rate_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
   xlab('k (y^-1)') + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
+  scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#0072B2', 'GCAM k'='#D55E00')) +
   theme_light() +
   labs(title = 'SOC k value comparison during land use transition')
 
 #T test
 t.test(Rate_Comparison$Exp_k, Rate_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
 #According to this, there IS not a meaningful difference in the means
+
+
