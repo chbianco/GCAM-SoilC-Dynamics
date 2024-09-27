@@ -163,7 +163,7 @@ ggplot(mean_difference, aes(x = Mean_k, y = change)) +
   geom_vline(xintercept = 0, linetype = 'dashed', color = 'blue') +
   theme_light() 
 
-ggsave('Fake_forest-newP&Zz.jpeg', path = 'Graphs')
+ggsave('Fake_forest-newP&K.jpeg', path = 'Graphs')
 
 
 
