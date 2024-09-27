@@ -2,6 +2,8 @@ library(tidyr)
 library(dplyr)
 library(ggplot2)
 
+setwd("GitHub/GCAM-SoilC-Dynamics-CD")
+
 #Load GCAM data
 soilC <- read.csv(file = 'Data/GCAM_soilC.csv')
 timescales <- read.csv(file = 'Data/soil_timescales.csv')
@@ -9,9 +11,8 @@ glus <- read.csv(file = 'Data/GLU_codes.csv')
 regions <- read.csv('Data/GCAM_regions.csv')
 
 #Load experimental data
-PostKwon <- read.csv(file= 'Data/Experimental Data.csv', na.strings = c("", "NA"))
+PostKwon <- read.csv(file= 'Data/Experimental Data-CD.csv', na.strings = c("", "NA"))
 Wei <- read.csv(file= 'Data/Wei et al Data.csv', na.strings = c("", "NA"))
-
 
 #Join GLU codes with soilC data
 soilC %>%
@@ -27,7 +28,7 @@ soilC_regions %>%
 
 #Creating the Post & Kwon comparison data 
 PostKwon %>%
-  select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate) %>%
+  select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate, Initial_C, Final_C) %>%
   na.omit() %>%
   mutate(Land_Type = Initial_Land_Use) %>%
   right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
@@ -39,9 +40,9 @@ PostKwon %>%
   select(-Land_Type, -soilTimeScale.x, -Basin_long_name.x) %>%
   rename(soilTimeScale = soilTimeScale.y, Basin_long_name = Basin_long_name.y) %>%
   na.omit() %>%
-  mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
+  mutate(GCAM_Rate = (as.numeric(Final_C) - as.numeric(Initial_C))/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
          Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale, 
+         GCAM_k = -log(as.numeric(Final_C)/as.numeric(Initial_C))/soilTimeScale, 
          source = 'Post & Kwon'
   ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
@@ -162,7 +163,7 @@ ggplot(mean_difference, aes(x = Mean_k, y = change)) +
   geom_vline(xintercept = 0, linetype = 'dashed', color = 'blue') +
   theme_light() 
 
-ggsave('Fake_forest.jpeg', path = 'Graphs')
+ggsave('Fake_forest-newP&Zz.jpeg', path = 'Graphs')
 
 
 
