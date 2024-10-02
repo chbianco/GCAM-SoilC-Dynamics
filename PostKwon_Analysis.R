@@ -45,14 +45,14 @@ PostKwon %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
          Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/Time, 
+         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale, 
          ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
-  mutate(Exp_k = ifelse(sign(Exp_k) == sign(Exp_Rate), Exp_k*(-1), Exp_k)) -> Rate_Comparison
+  mutate(Exp_k = ifelse(sign(Exp_k) == sign(Exp_Rate), Exp_k*(-1), Exp_k)) -> PostKwon_Comparison
 
 
 #Plot the two rates against each other with a 1:1 line as well
-ggplot(data = Rate_Comparison, aes(x = Exp_Rate, y = GCAM_Rate)) + 
+ggplot(data = PostKwon_Comparison, aes(x = Exp_Rate, y = GCAM_Rate)) + 
   geom_point(aes(shape = Final_Land_Use, color = Initial_Land_Use), size = 3) + 
   scale_shape_manual(values = c(4, 8, 16, 17)) +
   scale_shape(solid = TRUE) +
@@ -65,7 +65,7 @@ ggplot(data = Rate_Comparison, aes(x = Exp_Rate, y = GCAM_Rate)) +
        caption = '')
 
 #Plot the two k vals against each other with a 1:1 line as well
-ggplot(data = Rate_Comparison, aes(x = Exp_k, y = GCAM_k)) + 
+ggplot(data = PostKwon_Comparison, aes(x = Exp_k, y = GCAM_k)) + 
   geom_point(aes(shape = Final_Land_Use, color = Initial_Land_Use), size = 3) + 
   scale_shape_manual(values = c(4, 8, 16, 17)) +
   scale_shape(solid = TRUE) +
@@ -79,28 +79,29 @@ ggplot(data = Rate_Comparison, aes(x = Exp_k, y = GCAM_k)) +
 
 #Plot overlapping rate histograms for the different rate sources
 ggplot() +
-  geom_histogram(aes(x = Rate_Comparison$Exp_Rate, fill ='Experimental Rate' ), alpha = 0.5) +
-  geom_histogram(aes(x = Rate_Comparison$GCAM_Rate, fill = 'GCAM Rate'), alpha = 0.5) +
-  xlab('Rate (kg C/m^2)') + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Experimental Rate' = '#45912c', 'GCAM Rate'='#e3962b')) + 
-  theme_light() +
-  labs(title = 'SOC rate comparison during land use transition')
+  geom_histogram(aes(x = PostKwon_Comparison$Exp_Rate, fill ='Post & Kwon' ), alpha = 0.5) +
+  geom_histogram(aes(x = PostKwon_Comparison$GCAM_Rate, fill = 'GCAM Rate'), alpha = 0.5) +
+  xlab(expression(Rate~(kg~C/m^2))) + ylab('Count') +
+  scale_fill_manual(name = "Data Source", values = c('Post & Kwon' = '#3584B0', 'GCAM Rate'='#e3962b')) + 
+  theme_light() 
 
 
 
 #Plot overlapping k histograms for the different k sources
 ggplot() +
-  geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
-  geom_histogram(aes(x = Rate_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
-  xlab('k (y^-1)') + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
-  theme_light() +
-  labs(title = 'SOC k value comparison during land use transition')
+  geom_histogram(aes(x = PostKwon_Comparison$Exp_k,fill ='Post & Kwon'), alpha = 0.5) +
+  geom_histogram(aes(x = PostKwon_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5) +
+  xlab(expression(k~(y^-1))) + ylab('Count') +
+  scale_fill_manual(name = "Data Source", values = c('Post & Kwon' = '#3584B0', 'GCAM'='#e3962b')) +
+  theme_light()
+
+ggsave('PostKwon_k_hist.jpeg', path = 'Graphs')
+
 
 
 #T-tests, just for funsies
-t.test(Rate_Comparison$Exp_Rate, Rate_Comparison$GCAM_Rate, alternative = 'two.sided') ->Rate_T_test
+t.test(PostKwon_Comparison$Exp_Rate, PostKwon_Comparison$GCAM_Rate, alternative = 'two.sided') ->Rate_T_test
 #According to this, there is not a meaningful difference in the means
 
-t.test(Rate_Comparison$Exp_k, Rate_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
+t.test(PostKwon_Comparison$Exp_k, PostKwon_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
 #According to this, there is a meaningful difference in the means

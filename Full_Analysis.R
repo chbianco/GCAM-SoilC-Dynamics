@@ -41,7 +41,7 @@ PostKwon %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
          Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/Time, 
+         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale, 
          source = 'Post & Kwon'
   ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
@@ -63,7 +63,7 @@ Wei %>%
   rename(soilTimeScale = soilTimeScale.y) %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/Time,
+         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale,
          Exp_k = -log(1/((abs(OC_decrease)/100) +1))/Time,
          source = 'Wei et al'
   ) %>%
@@ -90,16 +90,21 @@ ggplot(data = Full_Comparison, aes(x = Exp_k, y = GCAM_k)) +
 
 #Plot overlapping k histograms for the different k sources
 ggplot() +
-  geom_histogram(aes(x = Full_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
-  geom_histogram(aes(x = Full_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
-  xlab('k (y^-1)') + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#45912c', 'GCAM k'='#e3962b')) +
-  theme_light() +
-  labs(title = 'SOC k value comparison during land use transition')
+  geom_histogram(aes(x = Full_Comparison$Exp_k, fill = Full_Comparison$source), alpha = 0.5, bins = 75) +
+  geom_histogram(aes(x = Full_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5, bins = 75) +
+  xlab(expression(k~(y^-1))) + ylab('Count') +
+  scale_fill_manual(name = "Data Source", 
+                    values = c('GCAM'='#e3962b', 'Wei et al' = '#45912c', 'Post & Kwon' = '#3584B0')) +
+  scale_y_continuous(name = 'Count')
+  theme_light() 
+
+ggsave('Full_k_hist.jpeg', path = 'Graphs')
 
 #T_Test
 t.test(Full_Comparison$Exp_k, Full_Comparison$GCAM_k, alternative = 'two.sided') ->Full_T_test
-#According to this, there IS a significant difference in the average of the means 
+#According to this, there is not a significant difference in the average of the means 
+
+
 
 
 
