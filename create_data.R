@@ -1,5 +1,6 @@
 #Load packages
 library(dplyr)
+library(tidyr)
 library(ggplot2)
 
 #Load GCAM data
@@ -23,7 +24,7 @@ soilC %>%
 
 #Simplify the data to just the stuff we'll need to compare with experimental data
 soilC_regions %>%
-  select(Land_Type, soil_c, GLU_code, soilTimeScale, GCAM_region_ID) -> simple_soilC_regions
+  select(Land_Type, soil_c, GLU_code, soilTimeScale, GCAM_region_ID, Basin_long_name) -> simple_soilC_regions
 
 #Creating the Post & Kwon comparison data 
 PostKwon %>%
@@ -32,12 +33,12 @@ PostKwon %>%
   mutate(Land_Type = Initial_Land_Use) %>%
   right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
   rename(initial_soil_c = soil_c) %>%
-  select(-Land_Type) %>%
+  select(-Land_Type) %>% 
   mutate(Land_Type = Final_Land_Use) %>%
   right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
   rename(final_soil_c = soil_c) %>%
-  select(-Land_Type, -soilTimeScale.x) %>%
-  rename(soilTimeScale = soilTimeScale.y) %>%
+  select(-Land_Type, -soilTimeScale.x, -Basin_long_name.x) %>%
+  rename(soilTimeScale = soilTimeScale.y, Basin_long_name = Basin_long_name.y) %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
          Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
@@ -46,7 +47,6 @@ PostKwon %>%
   ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
   mutate(Exp_k = ifelse(sign(Exp_k) == sign(Exp_Rate), Exp_k*(-1), Exp_k)) -> PostKwon_Comparison
-
 
 #Creating the Wei et al comparison data
 Wei %>%
@@ -59,8 +59,8 @@ Wei %>%
   mutate(Land_Type = Final_Land_Use) %>%
   right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
   rename(final_soil_c = soil_c) %>%
-  select(-Land_Type, -soilTimeScale.x) %>%
-  rename(soilTimeScale = soilTimeScale.y) %>%
+  select(-Land_Type, -soilTimeScale.x, -Basin_long_name.x) %>%
+  rename(soilTimeScale = soilTimeScale.y, Basin_long_name = Basin_long_name.y) %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale,
          GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale,
@@ -70,43 +70,22 @@ Wei %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
   mutate(Exp_k = ifelse(sign(Exp_k) == sign(OC_decrease), Exp_k, Exp_k*(-1))) -> Wei_Comparison
 
+#Merging the two papers...
 #Now, we bind the two rows together. Because the Wei et al data doesn't have any raw rates, we won't include that data from Post & Kwon either
 Full_Comparison <- bind_rows(
   select(PostKwon_Comparison, -Exp_Rate, -Rate_Difference),
   select(Wei_Comparison, -OC_decrease)
-  )
+)
 
-#Plot the two k vals against each other with a 1:1 line as well
-ggplot(data = Full_Comparison, aes(x = Exp_k, y = GCAM_k)) + 
-  geom_point(aes(shape = Final_Land_Use, color = Initial_Land_Use), size = 2) + 
-  scale_shape_manual(values = c(4, 8, 16, 17)) +
-  scale_shape(solid = TRUE) +
-  geom_abline() + 
-  xlab('Experimental k (1/y)') + ylab('GCAM Derived k (1/y)') +
-  theme_light() + 
-  xlim(-.1, .4) + ylim(-.1, .4)  +
-  labs(title = 'SOC k comparison during land use transition', color =  'Initial Land Use', shape = 'Final Land Use')
+#EVERYTHING ABOVE THIS LITERALLY JUST LOADS DATA!!!! DON'T CHANGE IT!!!!!
 
 
-#Plot overlapping k histograms for the different k sources
-ggplot() +
-  geom_histogram(aes(x = Full_Comparison$Exp_k, fill = Full_Comparison$source), alpha = 0.5, bins = 75) +
-  geom_histogram(aes(x = Full_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5, bins = 75) +
-  xlab(expression(k~(y^-1))) + ylab('Count') +
-  scale_fill_manual(name = "Data Source", 
-                    values = c('GCAM'='#e3962b', 'Wei et al' = '#45912c', 'Post & Kwon' = '#3584B0')) +
-  scale_y_continuous(name = 'Count')
-  theme_light() 
+#IF YOU WANT TWO TYPES, USE THIS
+Full_Comparison %>%
+  pivot_longer(cols = Exp_k:GCAM_k,
+               names_to = "Type",
+               values_to = "k") -> full_long_data 
 
-ggsave('Full_k_hist.jpeg', path = 'Graphs')
-
-#T_Test
-t.test(Full_Comparison$Exp_k, Full_Comparison$GCAM_k, alternative = 'two.sided') ->Full_T_test
-#According to this, there is not a significant difference in the average of the means 
-
-
-
-
-
-
-
+#Let's add transition type
+full_long_data %>% 
+  mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = '')) -> change_long_data
