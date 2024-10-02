@@ -46,12 +46,30 @@ TukeyHSD(test_long_data)
 
 wei_gcam %>%
   ungroup() %>%
-  dplyr::select(k, Type, Basin_long_name) %>%
-  droplevels(wei_gcam$Basin_long_name)-> friedman_data_alt
-  #group_by(Basin_long_name, Type) %>%
-  #complete() -> friedman_data
+  dplyr::select(k, change, Type, Basin_long_name) %>%
+  group_by(Basin_long_name, change, Type) %>%
+#  mutate(pairs = length(k),
+#         set = 1:10) %>%
+  ungroup() -> test
+
+#test <- read.csv("SOC_test.csv")
 
 library(rstatix)
 
-res.fried <- friedman.data %>% friedman_test(k ~ Type|Basin_long_name)
-  
+res.fried_1 <- test %>%
+  filter(set == 1) %>%
+  friedman_test(k ~ Basin_long_name|Type)
+
+res.fried_2 <- test %>%
+  filter(set == 2) %>%
+  friedman_test(k ~ Basin_long_name|Type)
+
+res.fried_10 <- test %>%
+  filter(set == 10) %>%
+  friedman_test(k ~ Type|Basin_long_name)
+
+library(ARTool)
+
+art_model <- art(k ~ Basin_long_name*Type, data = test)  
+anova_art <- anova(art_model)
+print(anova_art)
