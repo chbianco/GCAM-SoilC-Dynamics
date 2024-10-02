@@ -9,7 +9,7 @@ glus <- read.csv(file = 'Data/GLU_codes.csv')
 regions <- read.csv('Data/GCAM_regions.csv')
 
 #Load experimental data
-PostKwon <- read.csv(file= 'Data/Experimental Data-CD.csv', na.strings = c("", "NA"))
+PostKwon <- read.csv(file= 'Data/Experimental Data-CD.csv', na.strings = c("", "NA","na"))
 Wei <- read.csv(file= 'Data/Wei et al Data.csv', na.strings = c("", "NA"))
 
 
