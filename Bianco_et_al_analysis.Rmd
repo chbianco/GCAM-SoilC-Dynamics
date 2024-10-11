@@ -101,7 +101,7 @@ The code for merging the GCAM and experimental, as well as for computing the rat
 ```{r calculate betas for P&K, echo = FALSE}
 #61 rows of data in P&K
 
-#data with percantage change
+#data with percentage change
 PostKwon %>%
   filter(!is.na(Initial_Percent_C)) -> PostKwon_a #7
 print(unique(PostKwon_a$Publication))
@@ -148,7 +148,7 @@ bind_rows(PostKwon_a, PostKwon_b_C1,
 
 ```{r create_comparison_Post_Kwon, echo = FALSE}
 
-#loosing 11 rows of P&K data in here seemingly because the
+#losing 11 rows of P&K data in here seemingly because the
 #Land_Type doesn't have associated C data in
 #simple_soil_c
 
