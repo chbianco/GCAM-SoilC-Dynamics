@@ -149,20 +149,20 @@ AIC(aov_basin)
 #Make the mean graph
 Full_Comparison %>%
   mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = ' to ')) %>%
-  mutate(difference = Exp_k - GCAM_k) %>%
+  mutate(difference = GCAM_k - Exp_k) %>%
   group_by(change) %>%
   summarise(Mean_k = mean(difference), std_dev = sd(difference), Sample_Size = n()) -> mean_difference
 
 ggplot(mean_difference, aes(x = Mean_k, y = change)) +
   geom_point(aes(size = Sample_Size), shape = 15) +
-  labs(x = 'k', y = 'Transition Type', title = "k calculated from Post & Kwon soil C") +
-  geom_errorbar(aes(xmin=Mean_k - std_dev, xmax=Mean_k + std_dev), width=.2,
+  geom_errorbar(aes(xmax = Mean_k + std_dev, xmin = Mean_k - std_dev), width = 0.5) +
+  labs(x = 'delta k', y = 'Transition Type', title = "Mean Difference between empirical and GCAM k", width=.2,
                 position=position_dodge(0.05)) +
-  xlim(-0.1, 0.1) +
-  geom_vline(xintercept = 0, linetype = 'dashed', color = 'blue') +
+  xlim(-0.12, 0.12) +
+  geom_vline(xintercept = 0, linetype = 'dashed', color = 'red') +
   theme_light() 
 
-ggsave('Fake_forest-new.jpeg', path = 'Graphs')
+ggsave('Difference_Plot.jpeg', path = 'Graphs')
 
 
 
