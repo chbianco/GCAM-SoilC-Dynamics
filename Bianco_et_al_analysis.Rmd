@@ -167,7 +167,8 @@ PostKwon_wBeta %>%
   select(-Land_Type, -soilTimeScale.x, -Basin_long_name.x) %>%
   rename(soilTimeScale = soilTimeScale.y, Basin_long_name = Basin_long_name.y) %>%
   na.omit() %>%
-  mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
+  mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale,
+         Rate_Difference = GCAM_Rate - Exp_Rate, 
          Exp_k = -log(beta)/Time,
          GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale, 
          source = 'Post & Kwon'
@@ -321,7 +322,7 @@ ggsave('Difference_Plot.jpeg', path = 'Graphs')
  
 \newline
 Is our data skewed?
-```{r Other, echo = FALSE}
+```{r Skewness, echo = FALSE}
 #IF YOU WANT TWO TYPES, USE THIS
 Full_Comparison %>%
   pivot_longer(cols = Exp_k:GCAM_k,
@@ -349,9 +350,11 @@ hist(1/(full_long_data$k + 0.35))
 ```
 
 \newline
-Results from the non-parametric test:
-```{r}
+After improving the skew, we can perform analysis of variance on the data, but we run into issues with multicollinearity. Here we look for the effect of land-use transition type within the Post&Kwon comparison data (which has multiple LUC types) and the effect of geography within the Wei et al comparison data (which has many basins, but only one LUC type).
+```{r Anova 1 of 2}
 library(car)
+library(emmeans)
+library(performance)
 
 #Not possible to run model with both LUC and Basin,
 #due to unequal distribution of data across
@@ -359,17 +362,78 @@ library(car)
 
 LUC_model <- lm(1/(k + 0.35) ~ Type * change,
                data = change_long_data[change_long_data$source == "Post & Kwon",])
-Anova(LUC_model)
+Anova(LUC_model, type = "III")
+LUC_emm <- emmeans(LUC_model, ~ Type|change, regrid = "response")
+pairs(LUC_emm)
+
+performance::check_homogeneity(LUC_model, method = "auto")
 
 ggplot(change_long_data[change_long_data$source == "Post & Kwon",], aes(Type, k, fill = Type)) + geom_boxplot() +
-  geom_hline(yintercept = 0, color = "red") +
+  scale_fill_manual(name = "Data Source",
+                    values = c('Exp_k'='#3584B0',
+                               'GCAM_k'='#e3962b')) +
+  geom_hline(yintercept = 0, color = "red", linetype = 2) +
+  ggtitle("Post & Kwon vs GCAM by Land-Use Transition") +
   facet_wrap(change ~.) + theme_light()
+```
 
-Basin_model <- lm(1/(k + 0.35) ~ Type * Basin_long_name ,
+\newline
+GCAM k values differ from Post & Kwon values specifically for Forest to Pasture transitions.
+\newline
+
+```{r Anova 2 of 2, fig.width=10,fig.height=11}
+Basin_model <- lm(1/(k + 0.35) ~ Type * Basin_long_name,
                data = change_long_data[change_long_data$source == "Wei et al",])
-Anova(Basin_model)
+Anova(Basin_model, type = "III")
+Basin_emm <- emmeans(Basin_model, ~ Type|Basin_long_name, regrid = "response")
+pairs(Basin_emm)
+
+performance::check_homogeneity(Basin_model, method = "auto")
 
 ggplot(change_long_data[change_long_data$source == "Wei et al",], aes(Type, k, fill = Type)) + geom_boxplot() +
-  geom_hline(yintercept = 0, color = "red") +
-  facet_wrap(Basin_long_name ~.) + theme_light()
+    scale_fill_manual(name = "Data Source",
+                    values = c('Exp_k'='#45912c',
+                               'GCAM_k'='#e3962b')) +
+  geom_hline(yintercept = 0, color = "red", linetype = 2) +
+  ggtitle("Wei et al vs GCAM by Basin\nnote variable Y axis") +
+  facet_wrap(Basin_long_name ~., ncol = 5, scale = "free_y") + theme_light() +
+  theme(legend.position = "bottom")
+```
+
+```{r Plot of basins with significant posthoc comparison}
+change_long_data %>%
+  filter(source == "Wei et al",
+         Basin_long_name %in% c("Philippines",
+                                "Ohio_River_Basin",
+                                "Niger",
+                                "Mekong",
+                                "Madagascar",
+                                "Huang_He",
+                                "Brahmani",
+                                "Gulf_of_Guinea",
+                                "Amazon")) %>%
+  ggplot(aes(Type, k, fill = Type)) + geom_boxplot() +
+    scale_fill_manual(name = "Data Source",
+                    values = c('Exp_k'='#45912c',
+                               'GCAM_k'='#e3962b')) +
+  geom_hline(yintercept = 0, color = "red", linetype = 2) +
+  ggtitle("Wei et al vs GCAM by Basin \np < 0.05 posthoc comparisons \nnote variable Y axis") +
+  facet_wrap(Basin_long_name ~., scale = "free_y") + theme_light() +
+  theme(legend.position = "bottom")
+```
+
+```{r Results from the non-parametric test}
+
+library(ARTool)
+
+LUC_art_model <- art(1/(k + 0.35) ~ as.factor(Type) * as.factor(change),
+               data = change_long_data[change_long_data$source == "Post & Kwon",])
+LUC_art <- anova(LUC_art_model)
+print(LUC_art)
+
+Basin_art_model <- lm(1/(k + 0.35) ~ as.factor(Type) * as.factor(Basin_long_name),
+               data = change_long_data[change_long_data$source == "Wei et al",])
+Basin_art <- anova(Basin_art_model)
+print(Basin_art)
+
 ```
