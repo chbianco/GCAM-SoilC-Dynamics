@@ -1,5 +1,5 @@
 ---
-title: "Comparing GCAM soil organic carbon predictions to empirical land use results"
+title: "Comparing GCAM soil organic carbon dynamics following land-use change to empirical values"
 output: bookdown::html_document2
 date: "`r format(Sys.time(), '%d %B %Y')`"
 ---
@@ -28,6 +28,7 @@ One of the parameters measured by GCAM is the soil organic carbon (SOC) content 
 To begin the analysis, SOC data was taken from a basic run of GCAM, called a reference scenario. This models “business as usual” for the world, without any extra climate policies and assuming a certain level of overall warming . Table S1 contains all relevant data from this reference scenario used in our analysis, which was performed using R. Note that the SOC data, GCAM's soil timescale list, as well as both the geopolitical regions list and the land use regions list are separate files, and must be merged before any additional steps can be performed. Below is the code used to load the data and libraries, as well as to merge the four files listed above. The final product is a data set where each SOC data point has an associated timescale value, land use region, and geopolitical region.
 
 ```{r Read-In-GCAM-Data, message=FALSE}
+library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(metafor)
@@ -50,11 +51,6 @@ glus <- read.csv(file = 'Data/GLU_codes.csv')
 regions <- read.csv('Data/GCAM_regions.csv')
 
 #Merging the four above data sets
-
-#flagging
-#issue here for me -> "GCAM_region_ID" does not exist in original file versions
-
-
 soilC %>%
   mutate(GLU_code = GLU) %>%
   right_join(glus, by='GLU_code') %>%
@@ -74,7 +70,7 @@ The experimental data compared to GCAM's outputs was taken from Post & Kwon (200
 Once fully digitized, the experimental data was loaded into R as well. Note that there were several entries with missing timeframes or where the location of the sample could not be determined. These were assigned a value of 'NA'. 
 
 ```{r Read-In-Experimental-Data}
-PostKwon <- read.csv(file= 'Data/Experimental Data.csv', na.strings = c("", "NA"))
+PostKwon <- read.csv(file= 'Data/Post and Kwon Data.csv', na.strings = c("", "NA"))
 Wei <- read.csv(file= 'Data/Wei et al Data.csv', na.strings = c("", "NA"))
 
 ```
@@ -102,33 +98,82 @@ k = -\frac{ln \left(\frac{1}{\frac{|OC Decrease|}{100} + 1}\right)}{t}
 
 The code for merging the GCAM and experimental, as well as for computing the rate and k value is below. The process was the same for the Wei et al. data. 
 
-```{r create_comparison_Post_Kwon}
+```{r calculate betas for P&K, echo = FALSE}
+#61 rows of data in P&K
+
+#data with percantage change
 PostKwon %>%
-  select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate) %>%
-  na.omit() %>%
+  filter(!is.na(Initial_Percent_C)) -> PostKwon_a #7
+print(unique(PostKwon_a$Publication))
+
+#data with only one end member
+PostKwon %>%
+  filter(! Publication %in% c("Veldkamp (1994)",
+                              "Ulery (1995)",
+                              "Beke (1990)"),
+         is.na(Final_C) | is.na(Initial_C)) -> PostKwon_b #6
+
+#data where beta can be directly calculated
+PostKwon %>%
+  filter(!is.na(Final_C),
+         !is.na(Initial_C)) -> PostKwon_c #48
+
+#sum of data frames should equal to 61
+sum(nrow(PostKwon_a),
+    nrow(PostKwon_b),
+    nrow(PostKwon_c))
+
+#from change in %OC
+PostKwon_a %>%
+  mutate(beta = 1 - ((Initial_Percent_C - Final_Percent_C)/100)) -> PostKwon_a
+
+#from either C0 or CF
+unique(PostKwon_b$Publication)
+PostKwon_b_C1 <- PostKwon_b[PostKwon_b$Publication == "White et al. (1976)",]
+PostKwon_b_C2 <- PostKwon_b[PostKwon_b$Publication == "Pregitzer & Palik (1996)",]
+
+PostKwon_b_C1 %>%
+  mutate(beta = 1 + (Exp_Rate * Time)/Initial_C) -> PostKwon_b_C1
+PostKwon_b_C2 %>%
+  mutate(beta = Final_C / (Final_C - Exp_Rate * Time)) -> PostKwon_b_C2
+
+#from C0 and Cf
+PostKwon_c %>%
+  mutate(beta = Final_C/Initial_C) -> PostKwon_c
+
+bind_rows(PostKwon_a, PostKwon_b_C1,
+          PostKwon_b_C2, PostKwon_c) -> PostKwon_wBeta
+
+```
+
+```{r create_comparison_Post_Kwon, echo = FALSE}
+
+#loosing 11 rows of P&K data in here seemingly because the
+#Land_Type doesn't have associated C data in
+#simple_soil_c
+
+PostKwon_wBeta %>%
+  select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate, beta) %>%
+  #na.omit() %>%
   mutate(Land_Type = Initial_Land_Use) %>%
-  right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
+  left_join(simple_soilC_regions,
+            by = c('GLU_code','GCAM_region_ID', 'Land_Type')) %>%
   rename(initial_soil_c = soil_c) %>%
   select(-Land_Type) %>%
   mutate(Land_Type = Final_Land_Use) %>%
-  right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
+  left_join(simple_soilC_regions,
+             by = c('GLU_code','GCAM_region_ID','Land_Type')) %>%
   rename(final_soil_c = soil_c) %>%
   select(-Land_Type, -soilTimeScale.x, -Basin_long_name.x) %>%
   rename(soilTimeScale = soilTimeScale.y, Basin_long_name = Basin_long_name.y) %>%
   na.omit() %>%
-  mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
-         Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
+  mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale,
+         Rate_Difference = GCAM_Rate - Exp_Rate, 
+         Exp_k = -log(beta)/Time,
          GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale, 
          source = 'Post & Kwon'
-  ) %>%
-  #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
-  #This did not have to be done for the GCAM_k because the argument inside the natural log will always be positive--it is a positive value divided by another positive value--so sign correction was not necesary. 
-  mutate(Exp_k = ifelse(sign(Exp_k) == sign(Exp_Rate), Exp_k*(-1), Exp_k)) -> PostKwon_Comparison
+  ) -> PostKwon_Comparison
 ```
-
-Note that, because of how the k value is computed for the experimental data, the sign was often mismatched. The sign of k corresponds to the opposite of the sign of the rate, which had to be corrected manually.  
-
-
 
 ```{r create_comparison_Wei, echo = FALSE}
 #Creating Wei comparison data
@@ -147,7 +192,7 @@ Wei %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale,
          GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale,
-         Exp_k = -log(1/((abs(OC_decrease)/100) +1))/Time,
+         Exp_k = -log(1 - (OC_decrease/100))/Time,
          source = 'Wei et al'
   ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
@@ -166,174 +211,65 @@ Full_Comparison <- bind_rows(
 
 #Now, we want to create another data frame that has all the repeated regions between the two studies
 Full_Comparison %>%
-  mutate(source_short = ifelse(source == 'Post & Kwon', 'PostKwon', 'Wei')) %>%
-  mutate(basin_source = paste(Basin_long_name, source_short)) %>%
-  filter((paste(Basin_long_name, 'PostKwon') %in% basin_source) & (paste(Basin_long_name, 'Wei') %in% basin_source)) -> Duplicate_Comparison
+  mutate(source_short = ifelse(source == 'Post & Kwon', 'PostKwon', 'Wei'),
+         basin_source = paste(Basin_long_name, source_short)) %>%
+  filter((paste(Basin_long_name, 'PostKwon') %in% basin_source) &
+           (paste(Basin_long_name, 'Wei') %in% basin_source)) -> Duplicate_Comparison
 
 counts = table(Duplicate_Comparison$basin_source)
  
 Duplicate_Comparison %>%
-  filter(
-    (counts[paste(Basin_long_name, 'Wei')] > 1) & (counts[paste(Basin_long_name, 'PostKwon')] > 1)
-  ) -> Duplicate_Comparison
+  filter((counts[paste(Basin_long_name, 'Wei')] > 1) &
+           (counts[paste(Basin_long_name, 'PostKwon')] > 1)) -> Duplicate_Comparison
 ```
 
 Once  the k values were calculated, meta-analyses were performed on the data. Three separate analyses were performed--one on the Post & Kwon data, one on the Wei et al. data, and one on the aggregated data set. All three examined the k value data so the results from all three tests could be reasonably compared to one another. The Standardized Mean Difference effect size was used for the analyses. Specifically, Hedges' g was used to calculate the Standardized Mean difference once the data was grouped by GCAM land use region. This allowed us to determine if there was a pattern in any potential discrepancies between GCAM and experimental data, or if any variance was localized geographically and/or random.  
 
 \newline
 A fixed effect model was used for the analysis. This means that it is assumed that all the data being examined (ie all the SOC measurements) come from the same general population, and that all the data was collected in the same manner. This obviously applies to the GCAM data, as it is all from the same run of a basic GCAM scenario. Because data was reported the same way regardless of the collection location, the same assumptions apply to the Post & Kwon and Wei et al. data. 
-```{r Meta-Analysis-full, warning=FALSE}
-#Meta-analysis for the aggregated data set 
-#First, we need to get mean, std dev, and n
-Full_Comparison %>%
-  group_by(Basin_long_name) %>%
-  summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
-            mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
-  ) -> Full_MA_data
-
-#Now, we can use escalc to get the standardized mean difference 
-Full_effect_sizes <-
-  escalc('SMD',
-         m1i = mean_control, n1i = n_control, sd1i = sd_control,
-         m2i = mean_GCAM, n2i = n_GCAM, sd2i = sd_GCAM,
-         data = Full_MA_data
-  )
-
-#We're going to use a fixed effect model for this analysis, which we set up below
-Full_fixed_effect_results <- rma(yi, vi, method = 'FE',
-                                     slab = Basin_long_name,
-                                     data = Full_effect_sizes)
-
-```
-
-```{r meta-analyses-individual, echo = FALSE, message=FALSE, warning=FALSE}
-#Now, for the Post & Kwon rates
-#First, we need to get mean, std dev, and n
-PostKwon_Comparison %>%
-  group_by(Basin_long_name) %>%
-  summarize(mean_control = mean(Exp_Rate), sd_control= sd(Exp_Rate), n_control = n(),
-            mean_GCAM = mean(GCAM_Rate), sd_GCAM = sd(GCAM_Rate), n_GCAM = n()
-            ) -> PostKwon_MA_data
-
-#Now, we can use escalc to get the standardized mean difference 
-PostKwon_effect_sizes <-
-  escalc('SMD',
-    m1i = mean_control, n1i = n_control, sd1i = sd_control,
-    m2i = mean_GCAM, n2i = n_GCAM, sd2i = sd_GCAM,
-    data = PostKwon_MA_data
-  )
-
-#We're going to use a fixed effect model for this analysis, which we set up below
-PostKwon_fixed_effect_results <- rma(yi, vi, method = 'FE',
-                                     slab = Basin_long_name,
-                                     data = PostKwon_effect_sizes)
-
-
-#Now, we'll do one for the Post & Kwon k values
-#First, we need to get mean, std dev, and n
-PostKwon_Comparison %>%
-  group_by(Basin_long_name) %>%
-  summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
-            mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
-  ) -> PostKwon_MA_k_data
-
-#Now, we can use escalc to get the standardized mean difference 
-PostKwon_k_effect_sizes <-
-  escalc('SMD',
-         m1i = mean_control, n1i = n_control, sd1i = sd_control,
-         m2i = mean_GCAM, n2i = n_GCAM, sd2i = sd_GCAM,
-         data = PostKwon_MA_k_data
-  )
-
-#We're going to use a fixed effect model for this analysis, which we set up below
-PostKwon_k_fixed_effect_results <- rma(yi, vi, method = 'FE',
-                                     slab = Basin_long_name,
-                                     data = PostKwon_k_effect_sizes)
-
-
-#Now we do the same for Wei et al.
-#First, we need to get mean, std dev, and n
-Wei_Comparison %>%
-  group_by(Basin_long_name) %>%
-  summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
-            mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
-  ) -> Wei_MA_data
-
-#Now, we can use escalc to get the standardized mean difference 
-Wei_effect_sizes <-
-  escalc('SMD',
-         m1i = mean_control, n1i = n_control, sd1i = sd_control,
-         m2i = mean_GCAM, n2i = n_GCAM, sd2i = sd_GCAM,
-         data = Wei_MA_data
-  )
-
-#We're going to use a fixed effect model for this analysis, which we set up below
-Wei_fixed_effect_results <- rma(yi, vi, method = 'FE',
-                                     slab = Basin_long_name,
-                                     data = Wei_effect_sizes)
-
-
-#Now for the whole data set by transition type
-#First, we need to create a column in the merged data for transition type 
-Full_Comparison %>% 
-  mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = '')) -> Full_Comparison_change
-
-#Now, we need to get mean, std dev, and n
-Full_Comparison_change %>%
-  group_by(change) %>%
-  summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
-            mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
-  ) -> Full_MA_data_change
-
-#Now, we can use escalc to get the standardized mean difference 
-Full_effect_sizes_change <-
-  escalc('SMD',
-         m1i = mean_control, n1i = n_control, sd1i = sd_control,
-         m2i = mean_GCAM, n2i = n_GCAM, sd2i = sd_GCAM,
-         data = Full_MA_data_change
-  )
-
-#We're going to use a fixed effect model for this analysis, which we set up below
-Full_fixed_effect_results_change <- rma(yi, vi, method = 'FE',
-                                 slab = change,
-                                 data = Full_effect_sizes_change)
-```
-
 
 # Results
-Overall, GCAMs rate and k value outputs matched experimental values. 
-```{r Historgram_Rate-Post-Kwon, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for raw soilC rates during land use transition. Here, the experimental data is taken from Post & Kwon.", message=FALSE}
+Theorectical GCAM SOC rates of change do overlap with experimental values. 
+```{r Historgram_rates, echo=FALSE, message=FALSE, fig.cap=" Histogram showing overlapping GCAM and experimental data for SOC accumulation and loss rates during land use transition. Here, the experimental data is taken from Post & Kwon."}
 #Plot overlapping rate histograms for the different rate sources
 ggplot() +
-  geom_histogram(aes(x = PostKwon_Comparison$Exp_Rate, fill ='Post & Kwon' ), alpha = 0.5) +
-  geom_histogram(aes(x = PostKwon_Comparison$GCAM_Rate, fill = 'GCAM Rate'), alpha = 0.5) +
+  geom_histogram(aes(x = PostKwon_Comparison$Exp_Rate,
+                     fill ='Post & Kwon' ), alpha = 0.5) +
+  geom_histogram(aes(x = PostKwon_Comparison$GCAM_Rate,
+                     fill = 'GCAM Rate'), alpha = 0.5) +
   xlab(expression(Rate~(kg~C/m^2))) + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Post & Kwon' = '#3584B0', 'GCAM Rate'='#e3962b')) + 
-  theme_light() 
+  scale_fill_manual(name = "Data Source",
+                    values = c('Post & Kwon'='#3584B0',
+                               'GCAM Rate'='#e3962b')) +
+  ggtitle("Rate Histogram
+          \nP&K data only b/c Wei et al do not report rates of change") +
+  theme_light()
 ```
 
 
-```{r Histogram_K-Post-Kwon, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Post & Kwon.", message=FALSE}
+```{r Histogram_K-Post-Kwon, echo=FALSE, message=FALSE, fig.cap=" Histogram showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Post & Kwon."}
 #Plot overlapping k histograms for the different k sources
 ggplot() +
   geom_histogram(aes(x = PostKwon_Comparison$Exp_k,fill ='Post & Kwon'), alpha = 0.5) +
   geom_histogram(aes(x = PostKwon_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5) +
   xlab(expression(k~(y^-1))) + ylab('Count') +
   scale_fill_manual(name = "Data Source", values = c('Post & Kwon' = '#3584B0', 'GCAM'='#e3962b')) +
+  ggtitle("P&K vs GCAM \nfirst order rate constant (k)") +
   theme_light()
 ```
 
-```{r Histogram_Wei, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Wei et al", message=FALSE}
+```{r Histogram_Wei, echo=FALSE, message=FALSE, fig.cap="Histogram showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from Wei et al."}
 #Plot overlapping k histograms for the different k sources
 ggplot() +
-  geom_histogram(aes(x = Wei_Comparison$Exp_k,fill ='Post & Kwon'), alpha = 0.5) +
+  geom_histogram(aes(x = Wei_Comparison$Exp_k,fill ='Wei et al'), alpha = 0.5) +
   geom_histogram(aes(x = Wei_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5) +
   xlab(expression(k~(y^-1))) + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Post & Kwon' = '#3584B0', 'GCAM'='#e3962b')) +
+  scale_fill_manual(name = "Data Source", values = c('Wei et al' = '#45912c', 'GCAM'='#e3962b')) +
+    ggtitle("Wei et al vs GCAM \nfirst order rate constant (k)") +
   theme_light()
 ```
 
-```{r k-Histogram-full, echo=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from both Post & Kwon and Wei et al.", message=FALSE}
+```{r k-Histogram-full, echo=FALSE, message=FALSE, fig.cap="Histograms showing overlapping GCAM and experimental data for computed k values during land use change. Here, the experimental data is taken from both Post & Kwon and Wei et al."}
 #Plot overlapping k histograms for the different k sources
 ggplot() +
   geom_histogram(aes(x = Full_Comparison$Exp_k, fill = Full_Comparison$source), alpha = 0.5, bins = 75) +
@@ -341,6 +277,7 @@ ggplot() +
   xlab(expression(k~(y^-1))) + ylab('Count') +
   scale_fill_manual(name = "Data Source", 
                     values = c('GCAM'='#e3962b', 'Wei et al' = '#45912c', 'Post & Kwon' = '#3584B0')) +
+    ggtitle("Empirical vs GCAM \nfirst order rate constant (k)") +
   theme_light() 
 ```
 
@@ -359,156 +296,144 @@ t.test(Wei_Comparison$Exp_k, Wei_Comparison$GCAM_k, alternative = 'two.sided')
 
 ```{r t-test-full}
 t.test(Full_Comparison$Exp_k, Full_Comparison$GCAM_k, alternative = 'two.sided')
-```
 
+```
+```{r Mean Difference by Transition Type, echo = FALSE}
+
+#Make the mean graph
+Full_Comparison %>%
+  mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = ' to ')) %>%
+  mutate(difference = GCAM_k - Exp_k) %>%
+  group_by(change) %>%
+  summarise(Mean_k = mean(difference), std_dev = sd(difference), Sample_Size = n()) -> mean_difference
+
+ggplot(mean_difference, aes(x = Mean_k, y = change)) +
+  geom_point(aes(size = Sample_Size), shape = 15) +
+  geom_errorbar(aes(xmax = Mean_k + std_dev, xmin = Mean_k - std_dev), width = 0.5) +
+  labs(x = 'delta k', y = 'Transition Type', title = "Mean Difference between empirical and GCAM k", width=.2,
+                position=position_dodge(0.05)) +
+  xlim(-0.12, 0.12) +
+  geom_vline(xintercept = 0, linetype = 'dashed', color = 'red') +
+  theme_light() 
+
+ggsave('Difference_Plot.jpeg', path = 'Graphs')
+
+```
  
 \newline
-Results from the analysis on the Post & Kwon data: 
-```{r meta-analysis-results-Post-Kwon}
-PostKwon_k_fixed_effect_results
-```
-```{r Forest_Plot-Post-Kwon, echo = FALSE, fig.cap ='Forest plot detailing the meta analysis performed on the Post & Kwon SOC Data. The data was grouped by GCAM land region (represented by GLU code).' , message = FALSE}
-#Forest plot for Post & Kwon k vals
-forest(
-  PostKwon_k_effect_sizes$yi, PostKwon_k_effect_sizes$vi,
-  annotate = FALSE, showweights = TRUE, 
-  header = c('Region', 'Weight         SMD [95% CI]'),
-  slab = PostKwon_k_fixed_effect_results$slab,
-  xlab = 'Standardized Mean Difference',
-  #Below sets the size of study labels, shape of bars, and size of x labels 
-  cex = .8, pch = 15, cex.lab = 1
-)
+Is our data skewed?
+```{r Skewness, echo = FALSE}
+#IF YOU WANT TWO TYPES, USE THIS
+Full_Comparison %>%
+  pivot_longer(cols = Exp_k:GCAM_k,
+               names_to = "Type",
+               values_to = "k") -> full_long_data 
 
-#Adding the summary effect size
-addpoly(
-  PostKwon_k_fixed_effect_results, 
-  col = 'orange', cex = 1, annotate = TRUE, mlab = 'Summary'
-)
+#Let's add transition type
+full_long_data %>% 
+  mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = '')) -> change_long_data
 
-```
 
-Results from the analysis on the Wei et al. data:
+library(e1071)
 
-```{r  meta-analysis-results-Wei}
-Wei_fixed_effect_results
-```
-```{r  Forest_Plot-Wei, echo = FALSE, fig.cap ='Forest plot detailing the meta analysis performed on the Wei et al. SOC Data. The data was grouped by GCAM land region (represented by GLU code).' , message = FALSE}
-#Forest plot for Wei
-forest(
-  Wei_effect_sizes$yi, Wei_effect_sizes$vi,
-  annotate = FALSE, showweights = TRUE, 
-  header = c('Region', 'Weight         SMD [95% CI]'),
-  slab = Wei_fixed_effect_results$slab,
-  xlab = 'Standardized Mean Difference',
-  #Below sets the size of study labels, shape of bars, and size of x labels 
-  cex = .8, pch = 15, cex.lab = 1
-)
+current_skewness <- skewness(full_long_data$k)
+print(paste("Current Skewness:", current_skewness))
+hist(full_long_data$k)
 
-#Adding the summary effect size
-addpoly(
-  Wei_fixed_effect_results, 
-  col = 'orange', cex = 1, annotate = TRUE, mlab = 'Summary'
-)
-```
+#through trial and error, 1/(k + 0.35)
+#seems about as good as we can get
 
-Results from the analysis on the data aggregated by transition type: 
-
-```{r Forest_Plot_transition_type, echo = FALSE, fig.cap ='Forest plot detailing the meta analysis performed on the aggregated SOC Data. The data was grouped by GCAM land region (represented by GLU code).' , message = FALSE}
-#Now, a meta analysis by transition type for the entire dataset
-#First, we need to create a column in the merged data for transition type 
-Full_Comparison %>% 
-  mutate(change = paste(Initial_Land_Use, Final_Land_Use, sep = '')) -> Full_Comparison_change
-
-#First, we need to get mean, std dev, and n
-Full_Comparison_change %>%
-  group_by(change) %>%
-  summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
-            mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
-  ) -> Full_MA_data_change
-
-#Now, we can use escalc to get the standardized mean difference 
-Full_effect_sizes_change <-
-  escalc('SMD',
-         m1i = mean_control, n1i = n_control, sd1i = sd_control,
-         m2i = mean_GCAM, n2i = n_GCAM, sd2i = sd_GCAM,
-         data = Full_MA_data_change
-  )
-
-#We're going to use a fixed effect model for this analysis, which we set up below
-Full_fixed_effect_results_change <- rma(yi, vi, method = 'FE',
-                                 slab = change,
-                                 data = Full_effect_sizes_change)
-
-#Forest plot for full dataset
-forest(
-  Full_effect_sizes_change$yi, Full_effect_sizes_change$vi,
-  annotate = TRUE, showweights = TRUE, 
-  header = c('Transition Type', 'Weight         SMD [95% CI]'),
-  slab = Full_fixed_effect_results_change$slab,
-  xlab = 'Standardized Mean Difference',
-  #Below sets the size of study labels, shape of bars, and size of x labels 
-  cex = .8, pch = 15, cex.lab = 1 
-)
-
-#Adding the summary effect size
-addpoly(
-  Full_fixed_effect_results_change, 
-  col = 'orange', cex = 1, annotate = TRUE, mlab = 'Summary'
-)
-
+transformed_skewness <- skewness(1/(full_long_data$k + 0.35))
+print(paste("Transformed Skewness:", transformed_skewness))
+hist(1/(full_long_data$k + 0.35))
 
 ```
-```{r meta-analysis-results-Full}
-Full_fixed_effect_results_change
+
+\newline
+After improving the skew, we can perform analysis of variance on the data, but we run into issues with multicollinearity. Here we look for the effect of land-use transition type within the Post&Kwon comparison data (which has multiple LUC types) and the effect of geography within the Wei et al comparison data (which has many basins, but only one LUC type).
+```{r Anova 1 of 2}
+library(car)
+library(emmeans)
+library(performance)
+
+#Not possible to run model with both LUC and Basin,
+#due to unequal distribution of data across
+#LUC type and Basin
+
+LUC_model <- lm(1/(k + 0.35) ~ Type * change,
+               data = change_long_data[change_long_data$source == "Post & Kwon",])
+Anova(LUC_model, type = "III")
+LUC_emm <- emmeans(LUC_model, ~ Type|change, regrid = "response")
+pairs(LUC_emm)
+
+performance::check_homogeneity(LUC_model, method = "auto")
+
+ggplot(change_long_data[change_long_data$source == "Post & Kwon",], aes(Type, k, fill = Type)) + geom_boxplot() +
+  scale_fill_manual(name = "Data Source",
+                    values = c('Exp_k'='#3584B0',
+                               'GCAM_k'='#e3962b')) +
+  geom_hline(yintercept = 0, color = "red", linetype = 2) +
+  ggtitle("Post & Kwon vs GCAM by Land-Use Transition") +
+  facet_wrap(change ~.) + theme_light()
 ```
 
-A meta-analysis was also performed only on the regions that were examined by both Post & Kwon and Wei et al. 
-```{r meta_analysis_duplicate_forest}
-#Meta analysis for the shared regions
-#First, we need to get mean, std dev, and n
-Duplicate_Comparison %>%
-  group_by(basin_source) %>%
-  summarize(mean_control = mean(Exp_k), sd_control= sd(Exp_k), n_control = n(),
-            mean_GCAM = mean(GCAM_k), sd_GCAM = sd(GCAM_k), n_GCAM = n()
-  ) -> Duplicate_MA_data
+\newline
+GCAM k values differ from Post & Kwon values specifically for Forest to Pasture transitions.
+\newline
 
-#Now, we can use escalc to get the standardized mean difference 
-Duplicate_effect_sizes <-
-  escalc('SMD',
-         m1i = mean_control, n1i = n_control, sd1i = sd_control,
-         m2i = mean_GCAM, n2i = n_GCAM, sd2i = sd_GCAM,
-         data = Duplicate_MA_data
-  )
+```{r Anova 2 of 2, fig.width=10,fig.height=11}
+Basin_model <- lm(1/(k + 0.35) ~ Type * Basin_long_name,
+               data = change_long_data[change_long_data$source == "Wei et al",])
+Anova(Basin_model, type = "III")
+Basin_emm <- emmeans(Basin_model, ~ Type|Basin_long_name, regrid = "response")
+pairs(Basin_emm)
 
-#We're going to use a fixed effect model for this analysis, which we set up below
-Duplicate_fixed_effect_results <- rma(yi, vi, method = 'FE',
-                                     slab = basin_source,
-                                     data = Duplicate_effect_sizes)
+performance::check_homogeneity(Basin_model, method = "auto")
 
-#Forest plot for duplicates
-forest(
-  Duplicate_effect_sizes$yi, Duplicate_effect_sizes$vi,
-  annotate = TRUE,showweights = TRUE,
-  header = c('Region', 'Weight            SMD [95% CI]'),
-  slab = Duplicate_fixed_effect_results$slab,
-  xlab = 'Standardized Mean Difference',
-  #Below sets the size of study labels, shape of bars, and size of x labels 
-  cex = .8, pch = 15, cex.lab = 1
-)
-
-#Adding the summary effect size
-addpoly(
-  Duplicate_fixed_effect_results, 
-  col = 'orange', cex = 1, annotate = TRUE, mlab = 'Summary'
-)
-
-
-```
-```{r meta_analysis_duplicate_results}
-Duplicate_fixed_effect_results
+ggplot(change_long_data[change_long_data$source == "Wei et al",], aes(Type, k, fill = Type)) + geom_boxplot() +
+    scale_fill_manual(name = "Data Source",
+                    values = c('Exp_k'='#45912c',
+                               'GCAM_k'='#e3962b')) +
+  geom_hline(yintercept = 0, color = "red", linetype = 2) +
+  ggtitle("Wei et al vs GCAM by Basin\nnote variable Y axis") +
+  facet_wrap(Basin_long_name ~., ncol = 5, scale = "free_y") + theme_light() +
+  theme(legend.position = "bottom")
 ```
 
+```{r Plot of basins with significant posthoc comparison}
+change_long_data %>%
+  filter(source == "Wei et al",
+         Basin_long_name %in% c("Philippines",
+                                "Ohio_River_Basin",
+                                "Niger",
+                                "Mekong",
+                                "Madagascar",
+                                "Huang_He",
+                                "Brahmani",
+                                "Gulf_of_Guinea",
+                                "Amazon")) %>%
+  ggplot(aes(Type, k, fill = Type)) + geom_boxplot() +
+    scale_fill_manual(name = "Data Source",
+                    values = c('Exp_k'='#45912c',
+                               'GCAM_k'='#e3962b')) +
+  geom_hline(yintercept = 0, color = "red", linetype = 2) +
+  ggtitle("Wei et al vs GCAM by Basin \np < 0.05 posthoc comparisons \nnote variable Y axis") +
+  facet_wrap(Basin_long_name ~., scale = "free_y") + theme_light() +
+  theme(legend.position = "bottom")
+```
 
-# Discussion
+```{r Results from the non-parametric test}
 
-# Conclusion
+library(ARTool)
+
+LUC_art_model <- art(1/(k + 0.35) ~ as.factor(Type) * as.factor(change),
+               data = change_long_data[change_long_data$source == "Post & Kwon",])
+LUC_art <- anova(LUC_art_model)
+print(LUC_art)
+
+Basin_art_model <- lm(1/(k + 0.35) ~ as.factor(Type) * as.factor(Basin_long_name),
+               data = change_long_data[change_long_data$source == "Wei et al",])
+Basin_art <- anova(Basin_art_model)
+print(Basin_art)
+
+```

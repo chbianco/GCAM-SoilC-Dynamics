@@ -36,15 +36,15 @@ Wei %>%
   rename(soilTimeScale = soilTimeScale.y) %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale,
-         GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale,
+         GCAM_k = -log(final_soil_c/initial_soil_c)/Time,
          Exp_k = -log(1/((abs(OC_decrease)/100) +1))/Time,
   ) %>%
   #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
-  mutate(Exp_k = ifelse(sign(Exp_k) == sign(OC_decrease), Exp_k, Exp_k*(-1))) -> Wei_Comparison
+  mutate(Exp_k = ifelse(sign(Exp_k) == sign(OC_decrease), Exp_k, Exp_k*(-1))) -> Rate_Comparison
 
 
 #Plot the two k vals against each other with a 1:1 line as well
-ggplot(data = Wei_Comparison, aes(x = Exp_k, y = GCAM_k)) + 
+ggplot(data = Rate_Comparison, aes(x = Exp_k, y = GCAM_k)) + 
   geom_point(aes(shape = Final_Land_Use, color = Initial_Land_Use), size = 2) + 
   scale_shape_manual(values = c(4, 8, 16, 17)) +
   scale_shape(solid = TRUE) +
@@ -57,15 +57,15 @@ ggplot(data = Wei_Comparison, aes(x = Exp_k, y = GCAM_k)) +
 
 #Plot overlapping k histograms for the different k sources
 ggplot() +
-  geom_histogram(aes(x = Wei_Comparison$Exp_k,fill ='Wei et al'), alpha = 0.5) +
-  geom_histogram(aes(x = Wei_Comparison$GCAM_k,  fill = 'GCAM'), alpha = 0.5) +
-  xlab(expression(k~(y^-1))) + ylab('Count') +
-  scale_fill_manual(name = "Data Source", values = c('Wei et al' = '#45912c', 'GCAM'='#e3962b')) +
-  theme_light() 
-
-ggsave('Wei_k_hist.jpeg', path = 'Graphs')
-
+  geom_histogram(aes(x = Rate_Comparison$Exp_k,fill ='Experimental k'), alpha = 0.5) +
+  geom_histogram(aes(x = Rate_Comparison$GCAM_k,  fill = 'GCAM k'), alpha = 0.5) +
+  xlab('k (y^-1)') + ylab('Count') +
+  scale_fill_manual(name = "Data Source", values = c('Experimental k' = '#0072B2', 'GCAM k'='#D55E00')) +
+  theme_light() +
+  labs(title = 'SOC k value comparison during land use transition')
 
 #T test
-t.test(Wei_Comparison$Exp_k, Wei_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
-#According to this, there is a meaningful difference in the means
+t.test(Rate_Comparison$Exp_k, Rate_Comparison$GCAM_k, alternative = 'two.sided') ->k_T_test
+#According to this, there IS not a meaningful difference in the means
+
+
