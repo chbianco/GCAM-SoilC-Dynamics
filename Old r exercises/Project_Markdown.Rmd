@@ -50,11 +50,6 @@ glus <- read.csv(file = 'Data/GLU_codes.csv')
 regions <- read.csv('Data/GCAM_regions.csv')
 
 #Merging the four above data sets
-
-#flagging
-#issue here for me -> "GCAM_region_ID" does not exist in original file versions
-
-
 soilC %>%
   mutate(GLU_code = GLU) %>%
   right_join(glus, by='GLU_code') %>%
@@ -102,9 +97,57 @@ k = -\frac{ln \left(\frac{1}{\frac{|OC Decrease|}{100} + 1}\right)}{t}
 
 The code for merging the GCAM and experimental, as well as for computing the rate and k value is below. The process was the same for the Wei et al. data. 
 
-```{r create_comparison_Post_Kwon}
+```{r calculate betas for P&K}
+#61 rows of data in P&K
+
+#data with percantage change
 PostKwon %>%
-  select(Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate) %>%
+  filter(!is.na(Initial_Percent_C)) -> PostKwon_a #7
+print(unique(PostKwon_a$Publication))
+
+#data with only one end member
+PostKwon %>%
+  filter(! Publication %in% c("Veldkamp (1994)",
+                              "Ulery (1995)",
+                              "Beke (1990)"),
+         is.na(Final_C) | is.na(Initial_C)) -> PostKwon_b #6
+
+#data where beta can be directly calculated
+PostKwon %>%
+  filter(!is.na(Final_C),
+         !is.na(Initial_C)) -> PostKwon_c #48
+
+#sum of data frames should equal to 61
+sum(nrow(PostKwon_a),
+    nrow(PostKwon_b),
+    nrow(PostKwon_c))
+
+#from change in %OC
+PostKwon_a %>%
+  mutate(beta = 1 - ((Initial_Percent_C - Final_Percent_C)/100)) -> PostKwon_a
+
+#from either C0 or CF
+unique(PostKwon_b$Publication)
+PostKwon_b_C1 <- PostKwon_b[PostKwon_b$Publication == "White et al. (1976)",]
+PostKwon_b_C2 <- PostKwon_b[PostKwon_b$Publication == "Pregitzer & Palik (1996)",]
+
+PostKwon_b_C1 %>%
+  mutate(beta = 1 + (Exp_Rate * Time)/Initial_C) -> PostKwon_b_C1
+PostKwon_b_C2 %>%
+  mutate(beta = Final_C / (Final_C - Exp_Rate * Time)) -> PostKwon_b_C2
+
+#from C0 and Cf
+PostKwon_c %>%
+  mutate(beta = Final_C/Initial_C) -> PostKwon_c
+
+bind_rows(PostKwon_a, PostKwon_b_C1,
+          PostKwon_b_C2, PostKwon_c) -> PostKwon_wBeta
+
+```
+
+```{r create_comparison_Post_Kwon}
+PostKwon_wBeta %>%
+  select(Publication, Initial_Land_Use, Final_Land_Use, GLU_code, GCAM_region_ID, Time, Exp_Rate, beta) %>%
   na.omit() %>%
   mutate(Land_Type = Initial_Land_Use) %>%
   right_join(simple_soilC_regions, by = c('GLU_code', 'Land_Type', 'GCAM_region_ID')) %>%
@@ -117,13 +160,10 @@ PostKwon %>%
   rename(soilTimeScale = soilTimeScale.y, Basin_long_name = Basin_long_name.y) %>%
   na.omit() %>%
   mutate(GCAM_Rate = (final_soil_c - initial_soil_c)/soilTimeScale, Rate_Difference = Exp_Rate - GCAM_Rate, 
-         Exp_k = -log(abs(Exp_Rate)*Time +1)/Time,
+         Exp_k = -log(beta)/Time,
          GCAM_k = -log(final_soil_c/initial_soil_c)/soilTimeScale, 
          source = 'Post & Kwon'
-  ) %>%
-  #This next line corrects the sign of Exp_k--we had to take the absolute value to avoid NaNs, so this accounts for that 
-  #This did not have to be done for the GCAM_k because the argument inside the natural log will always be positive--it is a positive value divided by another positive value--so sign correction was not necesary. 
-  mutate(Exp_k = ifelse(sign(Exp_k) == sign(Exp_Rate), Exp_k*(-1), Exp_k)) -> PostKwon_Comparison
+  ) -> PostKwon_Comparison
 ```
 
 Note that, because of how the k value is computed for the experimental data, the sign was often mismatched. The sign of k corresponds to the opposite of the sign of the rate, which had to be corrected manually.  
